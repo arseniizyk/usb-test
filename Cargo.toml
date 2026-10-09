@@ -1,0 +1,42 @@
+[package]
+name = "usb-test"
+version = "1.2.0"
+edition = "2021"
+authors = ["USB Test Contributors"]
+description = "High-performance, memory-safe USB drive diagnostic & sector verification tool"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+ratatui = "0.29"
+crossterm = { version = "0.28", features = ["event-stream"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "2.0"
+anyhow = "1.0"
+semver = "1.0"
+chrono = { version = "0.4", features = ["serde"] }
+dirs = "5.0"
+rand = "0.8"
+tempfile = "3.10"
+ureq = { version = "2.10", features = ["json", "tls"] }
+crc32fast = "1.4"
+libc = "0.2"
+
+[target.'cfg(windows)'.dependencies.windows]
+version = "0.58"
+features = [
+    "Win32_Foundation",
+    "Win32_Storage_FileSystem",
+    "Win32_System_Ioctl",
+    "Win32_System_SystemInformation",
+    "Win32_System_IO",
+    "Win32_UI_Shell",
+    "Win32_Security",
+]
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

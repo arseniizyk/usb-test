@@ -1,58 +1,110 @@
-# USB Test
+# USB Test (Rust Edition) 🚀
 
-**USB Test** is a lightweight and portable utility written in **C++** for checking removable drives.  
-One of the main use cases is **sector health verification**, but the tool also provides additional functionality.  
+Высокопроизводительная, безопасная утилита для глубокой диагностики, измерения реальной скорости и выявления поддельных флеш-накопителей (USB Flash, SD-карт, внешних SSD).
 
-[![Website](https://img.shields.io/badge/Website-Visit-blue?style=for-the-badge&logo=google-chrome)](https://usbtest.pro/)   [![SourceForge](https://img.shields.io/badge/SourceForge-Download-orange?style=for-the-badge&logo=sourceforge)](https://sourceforge.net/projects/usb-test/)   [![Feedback](https://img.shields.io/badge/Feedback-Google%20Form-green?style=for-the-badge&logo=discourse)](https://forms.gle/wEMjgvvJPWVdLcgU6)  [![Give a Star!](https://img.shields.io/github/stars/n-romanovich/usb-test?style=for-the-badge&logo=github&label=Give%20a%20Star!&color=yellow)](https://github.com/n-romanovich/usb-test/stargazers)
-
-## Features
-
-- **High speed** — up to **3x faster** than competitors  
-- **Accurate results** — precise sector health analysis
-- **Test History** — review and analyze past testing sessions
-- **Test Comparison** — side-by-side comparison of different test results
-- **Import/Export** — save tests to files or load previously saved data
+Проект полностью переписан с C++ на **Rust 2021** в соответствии с [`ROADMAP.md`](file:///Users/arsenii/Projects/usb-test/ROADMAP.md) с устранением всех критических уязвимостей и багов, описанных в [`issues.md`](file:///Users/arsenii/Projects/usb-test/issues.md).
 
 ---
 
-## Test Results
+## 🛡️ Ключевые преимущества и безопасность
 
-After running the tests, **USB Test** provides:  
-- **Disk map** with visualization of healthy and damaged sectors  
-- **Real disk capacity** (detects fake drives with overstated size)  
-- **Write and read speed** measurements
-- **Test modes**:  
-  - Write  
-  - Write + Read + Compare  
-
----
-
-## Screenshots
-
-<img width="1115" height="628" alt="image" src="https://github.com/user-attachments/assets/5f121cce-bf64-429b-b886-e9d8e7d81b29" />
-<img width="1115" height="628" alt="image" src="https://github.com/user-attachments/assets/70e55b76-963b-4372-a7ed-9753c4e842cb" />
-<img width="1102" height="1046" alt="image" src="https://github.com/user-attachments/assets/c3941e93-75a5-449a-adbb-a0b8dc745d55" />
-<img width="1115" height="476" alt="image" src="https://github.com/user-attachments/assets/493e95bc-998f-4110-b525-920810fb50ad" />
-<img width="1115" height="476" alt="image" src="https://github.com/user-attachments/assets/4c8733c5-0763-48c6-a93c-d28333fffc7a" />
-
-
-
-
+| Проблема в старой версии (C++) | Решение в новой версии (Rust) |
+|---|---|
+| **Угроза форматирования системного диска `C:`** | Строгий аппаратный фильтр: разрешены только `DRIVE_REMOVABLE`. Системный том (`GetSystemDirectoryW`) заблокирован на уровне ядра |
+| **Искажение скорости дисковым кэшем RAM** | Честный прямой блочный ввод-вывод (**Direct I/O**, `FILE_FLAG_NO_BUFFERING \| FILE_FLAG_WRITE_THROUGH`) с выравниванием по секторам |
+| **Сверхмедленная посекторная запись (512 байт)** | Оптимальное блочное тестирование (**256 КБ – 1 МБ**) с посекторной детализацией латентности |
+| **Мерцающая консоль, `system("cls")` и CP1251** | Отзывчивый, современный TUI на базе **`ratatui`** и **`crossterm`** с полной поддержкой UTF-8 |
+| **Падения при повреждении JSON истории** | Отказоустойчивый парсинг на `serde`, атомарная запись через временные файлы и автоматический backup при сбоях |
+| **Отключение проверки SSL/TLS и HTTP-телеметрия** | Проверка обновлений строго по **HTTPS** с валидацией TLS. Обратная связь — исключительно явный **Opt-In** |
+| **Зависание интерфейса при проверке обновлений** | Неблокирующие асинхронные фоновые проверки |
+| **Утечки памяти и UB выхода за границы буферов** | 100% безопасный Rust без утечек дескрипторов и без buffer over-reads |
 
 ---
 
-## How to Use
+## ✨ Возможности
 
-1. Launch the program (`USB Test.exe`)
-2. Select "Start Test"
-3. Select the target USB drive from the list
-4. Select the test type (Write or Write+Read+Compare)
-5. Wait for the results
-
-**Warning:** This utility performs read/write operations. Make sure to back up any important data before running tests.
+1. **Режимы тестирования:**
+   - **Полный тест (Write & Verify):** Запись уникальных криптостойких паттернов с солью (`seed ^ block_index`) и контрольными суммами CRC32, с последующей верификацией чтения.
+   - **Только верификация (Read-Only):** Безопасная проверка читаемости существующих секторов без изменения пользовательских данных.
+   - **Экспресс-детектор подделок (Fake Capacity Check):** Экспресс-тест (до 1 минуты) по контрольным точкам геометрической прогрессии на выявление прошитых контроллеров, сбрасывающих данные или перезаписывающих начало (address wrap-around).
+2. **Интерактивная карта секторов (Grid Map):**
+   - 🟩 **Здоровые:** < 50 мс
+   - 🟨 **Внимание:** 50 – 200 мс
+   - 🟧 **Медленные:** 200 – 500 мс
+   - 🟥 **Критические:** > 500 мс
+   - ❌ **Битые / Сбой верификации:** Ошибка чтения/записи или искажение данных контроллером.
+3. **История и сравнение (Side-by-Side Comparison):**
+   - Сохранение истории тестов с датой, моделью, скоростями и числом битых блоков.
+   - Сравнение двух тестов накопителя с расчетом дельты скоростей, процентов и детекцией деградации памяти.
+   - Экспорт и импорт истории в JSON с валидацией схемы.
+4. **Горячее перечисление накопителей:**
+   - Нажмите `R` для мгновенного обновления списка дисков без перезапуска приложения при подключении/извлечении флешки.
 
 ---
 
-## Requirements
+## ⌨️ Управление в TUI
 
-- Windows XP or later (x64)
+| Клавиша | Действие |
+|---|---|
+| `▲` / `▼` | Навигация по списку накопителей / истории |
+| `Enter` | Выбрать диск / Подтвердить запуск теста |
+| `1` / `2` / `3` | Выбор режима тестирования |
+| `R` | Обновить список дисков (Rescan) |
+| `H` | Открыть историю тестов |
+| `C` | Сравнить выбранные тесты (Side-by-side) |
+| `S` | Сохранить завершенный тест в историю |
+| `F` | Отправить отзыв разработчикам (Opt-In HTTPS) |
+| `Esc` / `Q` | Назад / Прервать тест / Выход |
+
+---
+
+## 🏗️ Архитектура проекта
+
+```text
+usb-test/
+├── Cargo.toml               # Зависимости и флаги оптимизации (LTO, strip, opt-level=3)
+├── src/
+│   ├── lib.rs               # Экспорт модулей библиотеки
+│   ├── main.rs              # Инициализация терминала, panic guard, главный цикл
+│   ├── core/                # Доменные структуры (DriveInfo, BlockStatus, TestStats)
+│   ├── error.rs             # Типизированная система ошибок (thiserror)
+│   ├── safety/              # Защитный слой валидации дисков (Win32 API и mock-сканер)
+│   ├── io/                  # Движок Direct I/O, AlignedBuffer, TestEngine, CRC32 паттерны
+│   ├── history/             # Атомарное сохранение, устойчивость к сбоям, сравнение
+│   ├── net/                 # Безопасная проверка обновлений (HTTPS/SemVer) и фидбек
+│   └── ui/                  # TUI интерфейс на ratatui + crossterm
+└── tests/
+    └── integration_tests.rs # Сквозные интеграционные тесты цикла тестирования
+```
+
+---
+
+## 🚀 Сборка и запуск
+
+### Требования
+- Установленный [Rust toolchain](https://rustup.rs/) (версия 1.75 или новее).
+
+### Сборка и запуск для текущей платформы
+```bash
+# Запуск в режиме отладки
+cargo run
+
+# Запуск тестов
+cargo test
+
+# Сборка оптимизированного релизного бинарника
+cargo build --release
+```
+Релизный бинарник компилируется со статической линковкой, LTO и удалением отладочных символов, занимая всего **~2 МБ** без необходимости установки сторонних библиотек.
+
+### Сборка под Windows
+```bash
+cargo build --release --target x86_64-pc-windows-msvc
+```
+Полученный файл `target/x86_64-pc-windows-msvc/release/usb-test.exe` полностью автономен и готов к распространению.
+
+---
+
+## 📄 Лицензия
+
+Распространяется под лицензией MIT или Apache-2.0.

@@ -11,6 +11,11 @@
 *.sln.docstates
 *.env
 
+# Rust
+/target
+Cargo.lock
+
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
