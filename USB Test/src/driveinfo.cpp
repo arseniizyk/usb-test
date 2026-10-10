@@ -5,9 +5,6 @@
 
 using namespace std;
 
-char drivesRaw[500];		//Unprocessed array of drive letters
-int drivesCount = 0;		//Number of drives connected
-
 extern int defCol, errCol, selCol;		//Console color codes
 extern bool isLangRu;
 
@@ -17,39 +14,38 @@ DISK_GEOMETRY dg;
 
 
 /*
-* @brief Gets drives count and all drive letters
-* @return Returns processed array of chars with drive letters in it ({'C', 'D', 'E', 'F'}),    std::vector<char>[]
+* @brief Gets all drive letters of removable drives (excluding system drive)
+* @return Returns array of chars with drive letters ({'E', 'F'}), std::vector<char>
 */
 std::vector<char> getDrives() {
+	std::vector<char> drivesProcessed;
 
-	GetLogicalDriveStringsA(sizeof(drivesRaw), drivesRaw);		//Getting drives connected and putting data in drivesRaw[]
-
-	for (int i = 0; i < 500; i++)	//Count the number of drives
-	{
-		if (drivesRaw[i] != ':' && drivesRaw[i] != '\\' && drivesRaw[i] != '\0')		//Looking for drive letters
-		{
-			drivesCount++;		//Increasing drivesCount when drive letter found
-		}
-
-		if (drivesRaw[i] == '\0') {		//Checking for end of the drivesRaw[] {... \0, \0}
-			++i;
-
-			if (drivesRaw[i] == '\0') {
-				break;
-			}
-			else { --i; }
-		}
+	DWORD bufferLength = GetLogicalDriveStringsW(0, NULL);
+	if (bufferLength == 0) {
+		return drivesProcessed;
 	}
 
-	std::vector<char> drivesProcessed(drivesCount, 0);		//Initializing std::vector<char> array with 'drivesCount' elements.	{C, D, E, F, G}
+	std::vector<wchar_t> buffer(bufferLength + 1, 0);
+	if (GetLogicalDriveStringsW(bufferLength, buffer.data()) == 0) {
+		return drivesProcessed;
+	}
 
-	for (int i = 0, j = 0; j < drivesCount; i++)	//Processing drivesRaw[] information and putting it in drivesProcessed[]
-	{
-		if (drivesRaw[i] != ':' && drivesRaw[i] != '\\' && drivesRaw[i] != '\0')
-		{
-			drivesProcessed[j] = drivesRaw[i];
-			j++;
+	wchar_t systemDir[MAX_PATH] = { 0 };
+	wchar_t systemDriveLetter = L'\0';
+	if (GetSystemDirectoryW(systemDir, MAX_PATH) > 0) {
+		systemDriveLetter = static_cast<wchar_t>(towupper(systemDir[0]));
+	}
+
+	const wchar_t* pDrive = buffer.data();
+	while (*pDrive) {
+		wchar_t driveLetterW = static_cast<wchar_t>(towupper(pDrive[0]));
+
+		// Only include removable drives and exclude the system drive
+		if (driveLetterW != systemDriveLetter && GetDriveTypeW(pDrive) == DRIVE_REMOVABLE) {
+			drivesProcessed.push_back(static_cast<char>(driveLetterW));
 		}
+
+		pDrive += wcslen(pDrive) + 1;
 	}
 
 	return drivesProcessed;
@@ -73,38 +69,45 @@ std::vector<char> getDrives() {
 */
 ULARGE_INTEGER getDrivesInfo(std::vector<char>& drives, int selectedDrive, bool isTableNeeded)
 {
-	ULARGE_INTEGER availableBytes, totalBytes;
+	ULARGE_INTEGER availableBytes = { 0 }, totalBytes = { 0 };
 
 	SetConsoleTextAttribute(hConsole, defCol);
 
-	if (selectedDrive != -1) {		//If selected drive is provided
+	if (selectedDrive >= 0 && selectedDrive < static_cast<int>(drives.size())) {		//If selected drive is provided and valid
 		wchar_t driveLetter = drives[selectedDrive];		//Forming drive path
 		wchar_t drivePath[4] = { driveLetter, L':' ,L'\\', L'\0' };
-		GetDiskFreeSpaceEx(drivePath, &availableBytes, &totalBytes, nullptr);		//Getting information about drive capacity
+		GetDiskFreeSpaceExW(drivePath, &availableBytes, &totalBytes, nullptr);		//Getting information about drive capacity
 	}
 
 	if (isTableNeeded) {		//Displaying table if needed
 
-		(isLangRu) ? cout << "Íîìåð\tÄèñê\t\tÑâîáîäíîå ìåñòî\t\tÐàçìåð äèñêà" << endl : cout << "No.\tDrive\t\tFree space\t\tDisk capacity" << endl;
+		(isLangRu) ? cout << "ÐÐ¾Ð¼ÐµÑ€\tÐ”Ð¸ÑÐº\t\tÐ¡Ð²Ð¾Ð±Ð¾Ð´Ð½Ð¾Ðµ Ð¼ÐµÑÑ‚Ð¾\t\tÐ Ð°Ð·Ð¼ÐµÑ€ Ð´Ð¸ÑÐºÐ°" << endl : cout << "No.\tDrive\t\tFree space\t\tDisk capacity" << endl;
 
-		for (int i = 0; i < drivesCount; i++)	//Displaying table line-by-line
-		{
-			wchar_t driveLetter = drives[i];
-			wchar_t drivePath[4] = { driveLetter, L':' ,L'\\', L'\0' };
-			GetDiskFreeSpaceEx(drivePath, &availableBytes, &totalBytes, nullptr);
-
-			if (selectedDrive == i && selectedDrive != -1) { SetConsoleTextAttribute(hConsole, selCol); }		//Looking for a selected drive (if != -1) to color it's line
-			cout << i + 1 << "\t" << drives[i] << "\t\t" << availableBytes.QuadPart / (1024ULL * 1024ULL) << " MB   \t\t";
-			if (availableBytes.QuadPart < 100ULL * (1024ULL * 1024ULL)) { cout << "\t"; }		//If capacity is lower than three symbols adds one tabulation
-			cout << totalBytes.QuadPart / (1024ULL * 1024ULL) << " MB" << endl;
-
+		if (drives.empty()) {
+			SetConsoleTextAttribute(hConsole, errCol);
+			(isLangRu) ? cout << "Ð¡ÑŠÑ‘Ð¼Ð½Ñ‹Ðµ Ð½Ð°ÐºÐ¾Ð¿Ð¸Ñ‚ÐµÐ»Ð¸ Ð½Ðµ Ð¾Ð±Ð½Ð°Ñ€ÑƒÐ¶ÐµÐ½Ñ‹." << endl : cout << "No removable drives detected." << endl;
 			SetConsoleTextAttribute(hConsole, defCol);
+		}
+		else {
+			for (size_t i = 0; i < drives.size(); i++)	//Displaying table line-by-line
+			{
+				wchar_t driveLetter = drives[i];
+				wchar_t drivePath[4] = { driveLetter, L':' ,L'\\', L'\0' };
+				GetDiskFreeSpaceExW(drivePath, &availableBytes, &totalBytes, nullptr);
+
+				if (selectedDrive == static_cast<int>(i) && selectedDrive != -1) { SetConsoleTextAttribute(hConsole, selCol); }		//Looking for a selected drive (if != -1) to color it's line
+				cout << i + 1 << "\t" << drives[i] << "\t\t" << availableBytes.QuadPart / (1024ULL * 1024ULL) << " MB   \t\t";
+				if (availableBytes.QuadPart < 100ULL * (1024ULL * 1024ULL)) { cout << "\t"; }		//If capacity is lower than three symbols adds one tabulation
+				cout << totalBytes.QuadPart / (1024ULL * 1024ULL) << " MB" << endl;
+
+				SetConsoleTextAttribute(hConsole, defCol);
+			}
 		}
 		cout << endl << endl;
 
 	}
 
-	if (selectedDrive != -1) { return availableBytes; }
+	if (selectedDrive >= 0 && selectedDrive < static_cast<int>(drives.size())) { return availableBytes; }
 	else { return { 0 }; }
 }
 
@@ -133,7 +136,7 @@ void formatDisk(int selectedDrive) {
 	SetConsoleTextAttribute(hConsole, 10);
 	cout << drives[selectedDrive]; cout << ":\\";
 	SetConsoleTextAttribute(hConsole, 7);
-	cout << " — Please wait...";
+	cout << " â€” Please wait...";
 
 	system(format.c_str());		//Formatting drive
 }
@@ -170,7 +173,7 @@ DWORD getSectorSize(int selectedDrive, std::vector<char>& drives) {
 
 	if (hDevice == INVALID_HANDLE_VALUE) {      //Unable to open drive
 		SetConsoleTextAttribute(hConsole, errCol);
-		(isLangRu) ? cout << "Íå óäàëîñü îòêðûòü äèñê. Ïîïðîáóéòå çàïóñòèòü ïðîãðàììó îò èìåíè Àäìèíèñòðàòîðà \n" : cout << "Unable to access drive. Try running USB Test as Administrator \n";
+		(isLangRu) ? cout << "ÐÐµ ÑƒÐ´Ð°Ð»Ð¾ÑÑŒ Ð¾Ñ‚ÐºÑ€Ñ‹Ñ‚ÑŒ Ð´Ð¸ÑÐº. ÐŸÐ¾Ð¿Ñ€Ð¾Ð±ÑƒÐ¹Ñ‚Ðµ Ð·Ð°Ð¿ÑƒÑÑ‚Ð¸Ñ‚ÑŒ Ð¿Ñ€Ð¾Ð³Ñ€Ð°Ð¼Ð¼Ñƒ Ð¾Ñ‚ Ð¸Ð¼ÐµÐ½Ð¸ ÐÐ´Ð¼Ð¸Ð½Ð¸ÑÑ‚Ñ€Ð°Ñ‚Ð¾Ñ€Ð° \n" : cout << "Unable to access drive. Try running USB Test as Administrator \n";
 		system("pause"); exit(2);
 	}
 
@@ -186,7 +189,7 @@ DWORD getSectorSize(int selectedDrive, std::vector<char>& drives) {
 	}
 	else {
 		SetConsoleTextAttribute(hConsole, errCol);
-		(isLangRu) ? cout << "Îøèáêà â ïîëó÷åíèè ðàçìåðà ñåêòîðà!" : cout << "Unable to determine sector size!";
+		(isLangRu) ? cout << "ÐžÑˆÐ¸Ð±ÐºÐ° Ð² Ð¿Ð¾Ð»ÑƒÑ‡ÐµÐ½Ð¸Ð¸ Ñ€Ð°Ð·Ð¼ÐµÑ€Ð° ÑÐµÐºÑ‚Ð¾Ñ€Ð°!" : cout << "Unable to determine sector size!";
 		system("pause"); exit(3);
 	}
 

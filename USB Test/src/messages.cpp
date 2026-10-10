@@ -20,14 +20,13 @@ extern bool isLangRu;
 */
 int msgSelectDrive() {		
 
-	int selectedDrive;
-	extern int drivesCount;
+	int selectedDrive = 0;
 
 	(isLangRu) ? cout << "Введите номер съёмного диска, который нужно проверить:" << endl : cout << "Enter the number of the removable drive to check:" << endl; 		//Message
 	cin >> selectedDrive;
 	cout << endl;
 
-	if (selectedDrive > drivesCount || cin.fail()) {	//Select logic
+	if (cin.fail() || selectedDrive < 1 || selectedDrive > static_cast<int>(drives.size())) {	//Select logic
 		msgInputError(true);
 	}
 	selectedDrive--;		//Array numeration starts from 0, but disk numeration in table starts from 1. Decrement to cover the difference 

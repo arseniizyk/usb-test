@@ -77,6 +77,11 @@ void menuTest() {
 
 	getDrivesInfo(drives, -1, true);		//Display list of drives, highlighting drive -1 as selected (no drive selected)
 
+	if (drives.empty()) {
+		system("pause");
+		return;
+	}
+
 	selectedDrive = msgSelectDrive();		//Display drive selection message + Select logic
 
 	system("cls");
