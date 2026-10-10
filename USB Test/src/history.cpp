@@ -19,6 +19,14 @@ void viewHistory() {
 	system("cls");
 	readData();
 
+	if (jDrives.empty()) {
+		SetConsoleTextAttribute(hConsole, errCol);
+		(isLangRu) ? cout << "История тестов пуста.\n\n" : cout << "Test history is empty.\n\n";
+		SetConsoleTextAttribute(hConsole, defCol);
+		system("pause");
+		return;
+	}
+
 	for (size_t i = 0; i < jDrives.size(); i++)
 	{
 		displayTestData(static_cast<int>(i));		//Displays each test record
@@ -100,9 +108,26 @@ void compareTests(int optionOneType, int optionTwoType, string optionOneValue, s
 	json jComparisonOne = json::array();		//Test one
 	json jComparisonTwo = json::array();		//Test two
 
-
 	if (optionOneType == 1) {		//If test from history
-		int valueOne = stoi(optionOneValue);
+		int valueOne = 0;
+		try {
+			valueOne = stoi(optionOneValue);
+		}
+		catch (const exception&) {
+			SetConsoleTextAttribute(hConsole, errCol);
+			(isLangRu) ? cout << "Ошибка! Некорректный номер первого теста.\n" : cout << "Error! Invalid first test number.\n";
+			SetConsoleTextAttribute(hConsole, defCol);
+			system("pause");
+			return;
+		}
+
+		if (valueOne < 1 || valueOne > static_cast<int>(jDrives.size())) {
+			SetConsoleTextAttribute(hConsole, errCol);
+			(isLangRu) ? cout << "Ошибка! Первый тест не найден в истории.\n" : cout << "Error! First test not found in history.\n";
+			SetConsoleTextAttribute(hConsole, defCol);
+			system("pause");
+			return;
+		}
 		jComparisonOne.push_back(jDrives[valueOne - 1]);
 	} else {		//Else import test
 
@@ -111,14 +136,49 @@ void compareTests(int optionOneType, int optionTwoType, string optionOneValue, s
 			msgFileOpenError();
 			return;
 		}
-		file >> jComparisonOne;
 
+		try {
+			file >> jComparisonOne;
+		}
+		catch (const exception&) {
+			file.close();
+			SetConsoleTextAttribute(hConsole, errCol);
+			(isLangRu) ? cout << "Ошибка! Некорректный JSON в файле первого теста.\n" : cout << "Error! Invalid JSON in first test file.\n";
+			SetConsoleTextAttribute(hConsole, defCol);
+			system("pause");
+			return;
+		}
 		file.close();
 
+		if (!jComparisonOne.is_array() || jComparisonOne.empty() || !isValidTestRecord(jComparisonOne[0])) {
+			SetConsoleTextAttribute(hConsole, errCol);
+			(isLangRu) ? cout << "Ошибка! Файл первого теста пуст или содержит некорректную структуру записи.\n" : cout << "Error! First test file is empty or contains an invalid structure.\n";
+			SetConsoleTextAttribute(hConsole, defCol);
+			system("pause");
+			return;
+		}
 	}
 
 	if (optionTwoType == 1) {		//If test from history
-		int valueTwo = stoi(optionTwoValue);
+		int valueTwo = 0;
+		try {
+			valueTwo = stoi(optionTwoValue);
+		}
+		catch (const exception&) {
+			SetConsoleTextAttribute(hConsole, errCol);
+			(isLangRu) ? cout << "Ошибка! Некорректный номер второго теста.\n" : cout << "Error! Invalid second test number.\n";
+			SetConsoleTextAttribute(hConsole, defCol);
+			system("pause");
+			return;
+		}
+
+		if (valueTwo < 1 || valueTwo > static_cast<int>(jDrives.size())) {
+			SetConsoleTextAttribute(hConsole, errCol);
+			(isLangRu) ? cout << "Ошибка! Второй тест не найден в истории.\n" : cout << "Error! Second test not found in history.\n";
+			SetConsoleTextAttribute(hConsole, defCol);
+			system("pause");
+			return;
+		}
 		jComparisonTwo.push_back(jDrives[valueTwo - 1]);
 	} else {		//Else import test
 
@@ -127,12 +187,28 @@ void compareTests(int optionOneType, int optionTwoType, string optionOneValue, s
 			msgFileOpenError();
 			return;
 		}
-		file >> jComparisonTwo;
 
+		try {
+			file >> jComparisonTwo;
+		}
+		catch (const exception&) {
+			file.close();
+			SetConsoleTextAttribute(hConsole, errCol);
+			(isLangRu) ? cout << "Ошибка! Некорректный JSON в файле второго теста.\n" : cout << "Error! Invalid JSON in second test file.\n";
+			SetConsoleTextAttribute(hConsole, defCol);
+			system("pause");
+			return;
+		}
 		file.close();
+
+		if (!jComparisonTwo.is_array() || jComparisonTwo.empty() || !isValidTestRecord(jComparisonTwo[0])) {
+			SetConsoleTextAttribute(hConsole, errCol);
+			(isLangRu) ? cout << "Ошибка! Файл второго теста пуст или содержит некорректную структуру записи.\n" : cout << "Error! Second test file is empty or contains an invalid structure.\n";
+			SetConsoleTextAttribute(hConsole, defCol);
+			system("pause");
+			return;
+		}
 	}
 
 	compareData(jComparisonOne, jComparisonTwo);
-
-	system("pause");
 }

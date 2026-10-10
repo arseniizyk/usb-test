@@ -131,73 +131,72 @@ int msgSelectTestType(int selectedDrive) {
 
 
 /*
-* @brief Message appears before formatting selected disk + confirmation logic
-* @param int selectedDrive: Selected drives number in drives[]
+* @brief Prompts user for test confirmation without destructive disk formatting
+* @param int selectedDrive: Selected drive number in drives[]
+* @return bool: true if confirmed, false if cancelled
 */
-void msgFormatDisk(int selectedDrive) {
-
-	string confirmation;
+bool msgConfirmTest(int selectedDrive) {
 
 	if (isLangRu) {			//Russian
-		SetConsoleTextAttribute(hConsole, errCol);		//Message
+		SetConsoleTextAttribute(hConsole, 14);		//Notice
 		cout << "Внимание! ";
 		SetConsoleTextAttribute(hConsole, defCol);
-		cout << "Программа создана для проверки съемных накопителей. Перед проверкой диск ";
+		cout << "На выбранном накопителе ";
 		SetConsoleTextAttribute(hConsole, selCol);
 		cout << drives[selectedDrive] << ":\\";
 		SetConsoleTextAttribute(hConsole, defCol);
-		cout << " будет отформатирован!" << endl << endl << endl;
+		cout << " будет создан временный тестовый файл для проверки записи и чтения.\nСуществующие файлы на накопителе затронуты не будут." << endl << endl << endl;
 	}
 	else {		//English
-		SetConsoleTextAttribute(hConsole, errCol);		//Message
-		cout << "Warning! ";
+		SetConsoleTextAttribute(hConsole, 14);		//Notice
+		cout << "Notice! ";
 		SetConsoleTextAttribute(hConsole, defCol);
-		cout << "The program is designed to test removable drives. Before testing drive ";
+		cout << "A temporary test file will be created on drive ";
 		SetConsoleTextAttribute(hConsole, selCol);
 		cout << drives[selectedDrive] << ":\\";
 		SetConsoleTextAttribute(hConsole, defCol);
-		cout << " will be formatted!" << endl << endl << endl;
+		cout << " to verify write and read operations.\nExisting files on the drive will not be affected." << endl << endl << endl;
 	}
 	
-	int formatConfirm;		//Confirmation logic
+	int testConfirm;		//Confirmation logic
 	if (isLangRu) {		//Russian
-		formatConfirm = MessageBox(      // Confirmation logic
+		testConfirm = MessageBox(
 			NULL,
-			L"Перед началом проверки диск будет отформатирован!\n(т.е. все данные на нём будут стёрты)\n\nПеренесите все данные на другой диск и нажмите OK.",
-			L"Внимание!",
-			MB_ICONWARNING | MB_OKCANCEL
+			L"На выбранном накопителе будет проведено тестирование.\nДля проверки будет использовано свободное место на диске.\nСуществующие файлы не будут удалены.\n\nНажмите OK для продолжения.",
+			L"Подтверждение теста",
+			MB_ICONINFORMATION | MB_OKCANCEL
 		);
 	}
 	else {		//English
-		formatConfirm = MessageBox(	
+		testConfirm = MessageBox(	
 			NULL,
-			L"Before starting the test, the drive will be formatted!\n(all data on it will be erased).\n\nTransfer all data to another drive and press OK to continue.",
-			L"Warning!",
-			MB_ICONWARNING |
-			MB_OKCANCEL
+			L"Testing will be performed on the selected drive.\nFree space will be used for testing.\nExisting files will not be deleted.\n\nPress OK to continue.",
+			L"Test Confirmation",
+			MB_ICONINFORMATION | MB_OKCANCEL
 		);
 	} 
 
-	if (formatConfirm != IDOK) {		
-
+	if (testConfirm != IDOK) {		
 		if (isLangRu) {
 			SetConsoleTextAttribute(hConsole, errCol);
-			cout << "Отмена теста, форматирование не будет проведено." << endl;
+			cout << "Тест отменен пользователем." << endl;
 			SetConsoleTextAttribute(hConsole, defCol);
 		}
 		else {
 			SetConsoleTextAttribute(hConsole, errCol);
-			cout << "Test cancelled, formatting will not be performed." << endl;
+			cout << "Test cancelled by user." << endl;
 			SetConsoleTextAttribute(hConsole, defCol);
 		}
 
-
 		system("pause");
-		exit(3);
+		return false;
 	}
 
-	formatDisk(selectedDrive);
+	return true;
+}
 
+void msgFormatDisk(int selectedDrive) {
+	msgConfirmTest(selectedDrive);
 }
 
 
@@ -311,10 +310,10 @@ void msgFakeCapacity(unsigned long long actualCapacity) {
 
 
 /*
-* @brief Message appears before formatting the drive to end the test
+* @brief Message appears before cleaning up test files to end the test
 */
 void msgFormatBeforeExiting() {
-	(isLangRu) ? cout << "\nПеред выходом в меню программа безопасно отформатирует диск...\n\n" : cout << "\nThe drive will be safely formatted before exiting to the menu...\n\n";
+	(isLangRu) ? cout << "\nОчистка временных файлов теста перед выходом в меню...\n\n" : cout << "\nCleaning up temporary test files before returning to the menu...\n\n";
 }
 
 

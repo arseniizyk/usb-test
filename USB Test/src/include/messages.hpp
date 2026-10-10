@@ -13,6 +13,7 @@ int msgSelectDrive();
 void msgInputError(bool isExitingNeeded);
 void msgFileOpenError();
 int msgSelectTestType(int selectedDrive);
+bool msgConfirmTest(int selectedDrive);
 void msgFormatDisk(int selectedDrive);
 void msgBeforeTest();
 void msgSectorsInfo();

@@ -18,5 +18,6 @@ bool importData();
 bool compareData(json jComparisonOne, json jComparisonTwo);
 bool eraseData();
 std::string getDocumentsPath();
+bool isValidTestRecord(const json& item);
 
 const std::string& getDataPath();

@@ -26,6 +26,23 @@ const int CRIT_THRESHOLD = 2000;
 const int FAKE_CAPACITY_BAD_COUNT = 1000;
 
 /*
+* @brief Safely removes test files from the target drive without destructive formatting
+* @param char driveLetter: Target drive letter
+*/
+void cleanupTestFiles(char driveLetter) {
+    wstring searchPattern = wstring(1, static_cast<wchar_t>(towupper(driveLetter))) + L":\\usb-test*";
+    WIN32_FIND_DATAW findData;
+    HANDLE hFind = FindFirstFileW(searchPattern.c_str(), &findData);
+    if (hFind != INVALID_HANDLE_VALUE) {
+        do {
+            wstring filePath = wstring(1, static_cast<wchar_t>(towupper(driveLetter))) + L":\\" + findData.cFileName;
+            DeleteFileW(filePath.c_str());
+        } while (FindNextFileW(hFind, &findData));
+        FindClose(hFind);
+    }
+}
+
+/*
 * @brief Write test part
 *
 * @param
@@ -66,6 +83,9 @@ bool driveTestWritePart(int selectedDrive, std::vector<char>& drives, int select
     msgBeforeTest();    //Displays sector status types and other information before testing on a blank screen
 
 
+    // Clean up any stale test files before starting write test
+    cleanupTestFiles(drives[selectedDrive]);
+
     //Starting write test
     vector<char> buffer(dg.BytesPerSector);     //Initializing buffer with size of one sector
 
@@ -97,6 +117,9 @@ bool driveTestWritePart(int selectedDrive, std::vector<char>& drives, int select
 
             //Calculating the real capacity by subtracting the currently available bytes from the bytes available at the start of the test.
             unsigned long long realCapacity = (availableMegabytes - ((getDrivesInfo(drives, selectedDrive, false).QuadPart) / (1024ULL * 1024ULL)));
+
+            file.close();
+            cleanupTestFiles(drives[selectedDrive]);
 
             msgFakeCapacity(realCapacity);      //Displaying information about fake capacity
 
@@ -171,8 +194,11 @@ bool driveTestWritePart(int selectedDrive, std::vector<char>& drives, int select
 
 
     //If selected test is 2 (write, read, and comparison test), then it will be executed
-    if (selectedTest == 2) { driveTestReadPart(selectedDrive, drives, okCount, slowCount, verySlowCount, critCount, badCount, writeSpeed, availableMegabytes);
+    if (selectedTest == 2) {
+        file.close();
+        driveTestReadPart(selectedDrive, drives, okCount, slowCount, verySlowCount, critCount, badCount, writeSpeed, availableMegabytes);
     } else {
+        file.close();
         int fbDialogAnswer = displayFeedbackDialog();    //Displays feedback request dialog
         msgWriteTestResults(okCount, slowCount, verySlowCount, critCount, badCount, writeSpeed);     //Or else displaying write test results
 
@@ -180,12 +206,12 @@ bool driveTestWritePart(int selectedDrive, std::vector<char>& drives, int select
         (isLangRu) ? cout << "\nДля сохранения результатов в историю проведите Write&Read тест \n" : cout << "Run a Write&Read test to save results to history. \n";
         SetConsoleTextAttribute(hConsole, defCol);
 
-        msgFormatBeforeExiting();		//Display a message indicating that the disk will be formatted before the program closes
+        msgFormatBeforeExiting();		//Display a message indicating that the test files will be cleaned up
         system("pause");
 
         collectFeedback(fbDialogAnswer);
 
-        formatDisk(selectedDrive);		//Format the disk before exiting the program
+        cleanupTestFiles(drives[selectedDrive]);		//Clean up temporary test files without destructive formatting
     }
 
     return true;
@@ -228,6 +254,7 @@ bool driveTestReadPart(int selectedDrive, std::vector<char>& drives, unsigned lo
     if (!file) {
         SetConsoleTextAttribute(hConsole, errCol);
         (isLangRu) ? cerr << "Ошибка при открытии файла для проверки\n" : cerr << "Unable to open file for testing\n";
+        cleanupTestFiles(drives[selectedDrive]);
         return false;
     }
 
@@ -299,6 +326,8 @@ bool driveTestReadPart(int selectedDrive, std::vector<char>& drives, unsigned lo
     double readSpeed = availableMegabytes / readTime;
     readSpeed = std::round(readSpeed * 10.0) / 10.0;
 
+    file.close();
+
     SetConsoleTextAttribute(hConsole, 7);       //Read test end
 
     string driveLetter(1, drives[selectedDrive]); //Converting char drive letter to std::string
@@ -322,13 +351,13 @@ bool driveTestReadPart(int selectedDrive, std::vector<char>& drives, unsigned lo
     }
     SetConsoleTextAttribute(hConsole, defCol);
 
-    msgFormatBeforeExiting();		//Display a message indicating that the disk will be formatted before the program closes
+    msgFormatBeforeExiting();		//Display a message indicating that the test files will be cleaned up
 
     system("pause");
 
     collectFeedback(fbDialogAnswer);
 
-    formatDisk(selectedDrive);		//Format the disk before exiting the program
+    cleanupTestFiles(drives[selectedDrive]);		//Clean up temporary test files without destructive formatting
 
     return true;
 }

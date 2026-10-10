@@ -90,7 +90,9 @@ void menuTest() {
 
 	selectedTest = msgSelectTestType(selectedDrive);		//Display list of tests + Select logic
 
-	msgFormatDisk(selectedDrive);		//Display message before formatting the disk + Confirmation logic
+	if (!msgConfirmTest(selectedDrive)) {		//Display test confirmation message
+		return;
+	}
 
 	system("cls");
 	driveTestWritePart(selectedDrive, drives, selectedTest);		//Perform write test. If "Write&Read" was selected, the read + compare part starts at the end of this function.
