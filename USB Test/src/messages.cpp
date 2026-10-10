@@ -1,6 +1,7 @@
 #include "include/messages.hpp"
 #include <windows.h>
 #include <iostream>
+#include <limits>
 
 using namespace std;
 
@@ -22,7 +23,7 @@ int msgSelectDrive() {
 	int selectedDrive;
 	extern int drivesCount;
 
-	(isLangRu) ? cout << "¬‚Â‰ËÚÂ ÌÓÏÂ Ò˙∏ÏÌÓ„Ó ‰ËÒÍ‡, ÍÓÚÓ˚È ÌÛÊÌÓ ÔÓ‚ÂËÚ¸:" << endl : cout << "Enter the number of the removable drive to check:" << endl; 		//Message
+	(isLangRu) ? cout << "–í–≤–µ–¥–∏—Ç–µ –Ω–æ–º–µ—Ä —Å—ä—ë–º–Ω–æ–≥–æ –¥–∏—Å–∫–∞, –∫–æ—Ç–æ—Ä—ã–π –Ω—É–∂–Ω–æ –ø—Ä–æ–≤–µ—Ä–∏—Ç—å:" << endl : cout << "Enter the number of the removable drive to check:" << endl; 		//Message
 	cin >> selectedDrive;
 	cout << endl;
 
@@ -40,11 +41,14 @@ int msgSelectDrive() {
 */
 void msgInputError(bool isExitingNeeded) {
 
+	cin.clear();
+	cin.ignore((numeric_limits<streamsize>::max)(), '\n');
+
 	system("cls");
 	SetConsoleTextAttribute(hConsole, errCol);
-	(isLangRu) ? cout << "Œ¯Ë·Í‡! " : cout << "Error! ";
+	(isLangRu) ? cout << "–û—à–∏–±–∫–∞! " : cout << "Error! ";
 	SetConsoleTextAttribute(hConsole, defCol);
-	(isLangRu) ? cout << "¬‚Â‰ÂÌÌ˚Â ‰‡ÌÌ˚Â ÌÂ ÍÓÂÍÚÌ˚." << endl : cout << "The input is not valid." << endl;
+	(isLangRu) ? cout << "–í–≤–µ–¥–µ–Ω–Ω—ã–µ –¥–∞–Ω–Ω—ã–µ –Ω–µ –∫–æ—Ä—Ä–µ–∫—Ç–Ω—ã." << endl : cout << "The input is not valid." << endl;
 	system("pause"); 
 
 	if (isExitingNeeded) { exit(1); }
@@ -58,9 +62,9 @@ void msgFileOpenError() {
 
 	system("cls");
 	SetConsoleTextAttribute(hConsole, errCol);
-	(isLangRu) ? cout << "Œ¯Ë·Í‡! " : cout << "Error! ";
+	(isLangRu) ? cout << "–û—à–∏–±–∫–∞! " : cout << "Error! ";
 	SetConsoleTextAttribute(hConsole, defCol);
-	(isLangRu) ? cout << "ÕÂ Û‰‡ÎÓÒ¸ ÓÚÍ˚Ú¸ Ù‡ÈÎ." << endl : cout << "Unable to open file." << endl;
+	(isLangRu) ? cout << "–ù–µ —É–¥–∞–ª–æ—Å—å –æ—Ç–∫—Ä—ã—Ç—å —Ñ–∞–π–ª." << endl : cout << "Unable to open file." << endl;
 	system("pause");
 }
 
@@ -75,10 +79,10 @@ int msgSelectTestType(int selectedDrive) {
 	int selectedTest;
 
 	if (isLangRu) {		//Russian
-		cout << "ÕÓÏÂ\t\t“ÂÒÚ\t\t\tœÓ‰Ó·ÌÂÂ" << endl;		//Message
-		cout << "1\t\tWrite     \t\t¡˚ÒÚ˚È ÚÂÒÚ Ò Á‡ÔËÒ¸˛ ‰‡ÌÌ˚ı Ì‡ Ì‡ÍÓÔËÚÂÎ¸ ‰Îˇ ÔÓ‚ÂÍË Â„Ó Ì‡ÒÚÓˇ˘Â„Ó Ó·˙ÂÏ‡,\n\t\t\t\t\tÒÍÓÓÒÚË ÒÂÍÚÓÓ‚ Ë ‚˚ˇ‚ÎÂÌËˇ ·ËÚ˚ı ÒÂÍÚÓÓ‚. \n\n"
-			<< "2\t\tWrite&Read\t\t¡ÓÎÂÂ ‰ÓÎ„ËÈ ÚÂÒÚ Ò Á‡ÔËÒ¸˛, ˜ÚÂÌËÂÏ Ë Ò‡‚ÌÂÌËÂÏ ‰‡ÌÌ˚ı\n\t\t\t\t\t‰Îˇ ÚÓ˜ÌÓÈ ÔÓ‚ÂÍË ÒÂÍÚÓÓ‚. –ÂÁÛÎ¸Ú‡Ú˚ ÒÓı‡Ìˇ˛ÚÒˇ ‚ ËÒÚÓË˛ ÚÂÒÚÓ‚\n\n";
-		cout << "¬‚Â‰ËÚÂ ÌÓÏÂ ÚÂÒÚ‡, ÍÓÚÓ˚È ıÓÚËÚÂ ÔÓ‚ÂÒÚË:\n";
+		cout << "–ù–æ–º–µ—Ä\t\t–¢–µ—Å—Ç\t\t\t–ü–æ–¥—Ä–æ–±–Ω–µ–µ" << endl;		//Message
+		cout << "1\t\tWrite     \t\t–ë—ã—Å—Ç—Ä—ã–π —Ç–µ—Å—Ç —Å –∑–∞–ø–∏—Å—å—é –¥–∞–Ω–Ω—ã—Ö –Ω–∞ –Ω–∞–∫–æ–ø–∏—Ç–µ–ª—å –¥–ª—è –ø—Ä–æ–≤–µ—Ä–∫–∏ –µ–≥–æ –Ω–∞—Å—Ç–æ—è—â–µ–≥–æ –æ–±—ä–µ–º–∞,\n\t\t\t\t\t—Å–∫–æ—Ä–æ—Å—Ç–∏ —Å–µ–∫—Ç–æ—Ä–æ–≤ –∏ –≤—ã—è–≤–ª–µ–Ω–∏—è –±–∏—Ç—ã—Ö —Å–µ–∫—Ç–æ—Ä–æ–≤. \n\n"
+			<< "2\t\tWrite&Read\t\t–ë–æ–ª–µ–µ –¥–æ–ª–≥–∏–π —Ç–µ—Å—Ç —Å –∑–∞–ø–∏—Å—å—é, —á—Ç–µ–Ω–∏–µ–º –∏ —Å—Ä–∞–≤–Ω–µ–Ω–∏–µ–º –¥–∞–Ω–Ω—ã—Ö\n\t\t\t\t\t–¥–ª—è —Ç–æ—á–Ω–æ–π –ø—Ä–æ–≤–µ—Ä–∫–∏ —Å–µ–∫—Ç–æ—Ä–æ–≤. –†–µ–∑—É–ª—å—Ç–∞—Ç—ã —Å–æ—Ö—Ä–∞–Ω—è—é—Ç—Å—è –≤ –∏—Å—Ç–æ—Ä–∏—é —Ç–µ—Å—Ç–æ–≤\n\n";
+		cout << "–í–≤–µ–¥–∏—Ç–µ –Ω–æ–º–µ—Ä —Ç–µ—Å—Ç–∞, –∫–æ—Ç–æ—Ä—ã–π —Ö–æ—Ç–∏—Ç–µ –ø—Ä–æ–≤–µ—Å—Ç–∏:\n";
 	}
 	else {		//English
 		cout << "No.\t\tTest\t\t\tAbout" << endl;		//Message
@@ -96,13 +100,13 @@ int msgSelectTestType(int selectedDrive) {
 		getDrivesInfo(drives, selectedDrive, true);
 
 		if (isLangRu) {		//Russian
-			cout << "ÕÓÏÂ\t\t“ÂÒÚ\t\t\tœÓ‰Ó·ÌÂÂ" << endl;		//Coloring selected line (1 or 2)
+			cout << "–ù–æ–º–µ—Ä\t\t–¢–µ—Å—Ç\t\t\t–ü–æ–¥—Ä–æ–±–Ω–µ–µ" << endl;		//Coloring selected line (1 or 2)
 			if (selectedTest == 1) { SetConsoleTextAttribute(hConsole, selCol); }
-			cout << "1\t\tWrite     \t\t¡˚ÒÚ˚È ÚÂÒÚ Ò Á‡ÔËÒ¸˛ ‰‡ÌÌ˚ı Ì‡ Ì‡ÍÓÔËÚÂÎ¸ ‰Îˇ ÔÓ‚ÂÍË Â„Ó Ì‡ÒÚÓˇ˘Â„Ó Ó·˙ÂÏ‡,\n\t\t\t\t\tÒÍÓÓÒÚË ÒÂÍÚÓÓ‚ Ë ‚˚ˇ‚ÎÂÌËˇ ·ËÚ˚ı ÒÂÍÚÓÓ‚\n\n";
+			cout << "1\t\tWrite     \t\t–ë—ã—Å—Ç—Ä—ã–π —Ç–µ—Å—Ç —Å –∑–∞–ø–∏—Å—å—é –¥–∞–Ω–Ω—ã—Ö –Ω–∞ –Ω–∞–∫–æ–ø–∏—Ç–µ–ª—å –¥–ª—è –ø—Ä–æ–≤–µ—Ä–∫–∏ –µ–≥–æ –Ω–∞—Å—Ç–æ—è—â–µ–≥–æ –æ–±—ä–µ–º–∞,\n\t\t\t\t\t—Å–∫–æ—Ä–æ—Å—Ç–∏ —Å–µ–∫—Ç–æ—Ä–æ–≤ –∏ –≤—ã—è–≤–ª–µ–Ω–∏—è –±–∏—Ç—ã—Ö —Å–µ–∫—Ç–æ—Ä–æ–≤\n\n";
 			SetConsoleTextAttribute(hConsole, defCol);
 
 			if (selectedTest == 2) { SetConsoleTextAttribute(hConsole, selCol); }
-			cout << "2\t\tWrite&Read\t\t¡ÓÎÂÂ ‰ÓÎ„ËÈ ÚÂÒÚ Ò Á‡ÔËÒ¸˛, ˜ÚÂÌËÂÏ Ë Ò‡‚ÌÂÌËÂÏ ‰‡ÌÌ˚ı\n\t\t\t\t\t‰Îˇ ÚÓ˜ÌÓÈ ÔÓ‚ÂÍË ÒÂÍÚÓÓ‚. –ÂÁÛÎ¸Ú‡Ú˚ ÒÓı‡Ìˇ˛ÚÒˇ ‚ ËÒÚÓË˛ ÚÂÒÚÓ‚\n\n";
+			cout << "2\t\tWrite&Read\t\t–ë–æ–ª–µ–µ –¥–æ–ª–≥–∏–π —Ç–µ—Å—Ç —Å –∑–∞–ø–∏—Å—å—é, —á—Ç–µ–Ω–∏–µ–º –∏ —Å—Ä–∞–≤–Ω–µ–Ω–∏–µ–º –¥–∞–Ω–Ω—ã—Ö\n\t\t\t\t\t–¥–ª—è —Ç–æ—á–Ω–æ–π –ø—Ä–æ–≤–µ—Ä–∫–∏ —Å–µ–∫—Ç–æ—Ä–æ–≤. –†–µ–∑—É–ª—å—Ç–∞—Ç—ã —Å–æ—Ö—Ä–∞–Ω—è—é—Ç—Å—è –≤ –∏—Å—Ç–æ—Ä–∏—é —Ç–µ—Å—Ç–æ–≤\n\n";
 			SetConsoleTextAttribute(hConsole, defCol);
 		}
 		else {		//English
@@ -137,13 +141,13 @@ void msgFormatDisk(int selectedDrive) {
 
 	if (isLangRu) {			//Russian
 		SetConsoleTextAttribute(hConsole, errCol);		//Message
-		cout << "¬ÌËÏ‡ÌËÂ! ";
+		cout << "–í–Ω–∏–º–∞–Ω–∏–µ! ";
 		SetConsoleTextAttribute(hConsole, defCol);
-		cout << "œÓ„‡ÏÏ‡ ÒÓÁ‰‡Ì‡ ‰Îˇ ÔÓ‚ÂÍË Ò˙ÂÏÌ˚ı Ì‡ÍÓÔËÚÂÎÂÈ. œÂÂ‰ ÔÓ‚ÂÍÓÈ ‰ËÒÍ ";
+		cout << "–ü—Ä–æ–≥—Ä–∞–º–º–∞ —Å–æ–∑–¥–∞–Ω–∞ –¥–ª—è –ø—Ä–æ–≤–µ—Ä–∫–∏ —Å—ä–µ–º–Ω—ã—Ö –Ω–∞–∫–æ–ø–∏—Ç–µ–ª–µ–π. –ü–µ—Ä–µ–¥ –ø—Ä–æ–≤–µ—Ä–∫–æ–π –¥–∏—Å–∫ ";
 		SetConsoleTextAttribute(hConsole, selCol);
 		cout << drives[selectedDrive] << ":\\";
 		SetConsoleTextAttribute(hConsole, defCol);
-		cout << " ·Û‰ÂÚ ÓÚÙÓÏ‡ÚËÓ‚‡Ì!" << endl << endl << endl;
+		cout << " –±—É–¥–µ—Ç –æ—Ç—Ñ–æ—Ä–º–∞—Ç–∏—Ä–æ–≤–∞–Ω!" << endl << endl << endl;
 	}
 	else {		//English
 		SetConsoleTextAttribute(hConsole, errCol);		//Message
@@ -160,8 +164,8 @@ void msgFormatDisk(int selectedDrive) {
 	if (isLangRu) {		//Russian
 		formatConfirm = MessageBox(      // Confirmation logic
 			NULL,
-			L"œÂÂ‰ Ì‡˜‡ÎÓÏ ÔÓ‚ÂÍË ‰ËÒÍ ·Û‰ÂÚ ÓÚÙÓÏ‡ÚËÓ‚‡Ì!\n(Ú.Â. ‚ÒÂ ‰‡ÌÌ˚Â Ì‡ Ì∏Ï ·Û‰ÛÚ ÒÚ∏Ú˚)\n\nœÂÂÌÂÒËÚÂ ‚ÒÂ ‰‡ÌÌ˚Â Ì‡ ‰Û„ÓÈ ‰ËÒÍ Ë Ì‡ÊÏËÚÂ OK.",
-			L"¬ÌËÏ‡ÌËÂ!",
+			L"–ü–µ—Ä–µ–¥ –Ω–∞—á–∞–ª–æ–º –ø—Ä–æ–≤–µ—Ä–∫–∏ –¥–∏—Å–∫ –±—É–¥–µ—Ç –æ—Ç—Ñ–æ—Ä–º–∞—Ç–∏—Ä–æ–≤–∞–Ω!\n(—Ç.–µ. –≤—Å–µ –¥–∞–Ω–Ω—ã–µ –Ω–∞ –Ω—ë–º –±—É–¥—É—Ç —Å—Ç—ë—Ä—Ç—ã)\n\n–ü–µ—Ä–µ–Ω–µ—Å–∏—Ç–µ –≤—Å–µ –¥–∞–Ω–Ω—ã–µ –Ω–∞ –¥—Ä—É–≥–æ–π –¥–∏—Å–∫ –∏ –Ω–∞–∂–º–∏—Ç–µ OK.",
+			L"–í–Ω–∏–º–∞–Ω–∏–µ!",
 			MB_ICONWARNING | MB_OKCANCEL
 		);
 	}
@@ -179,7 +183,7 @@ void msgFormatDisk(int selectedDrive) {
 
 		if (isLangRu) {
 			SetConsoleTextAttribute(hConsole, errCol);
-			cout << "ŒÚÏÂÌ‡ ÚÂÒÚ‡, ÙÓÏ‡ÚËÓ‚‡ÌËÂ ÌÂ ·Û‰ÂÚ ÔÓ‚Â‰ÂÌÓ." << endl;
+			cout << "–û—Ç–º–µ–Ω–∞ —Ç–µ—Å—Ç–∞, —Ñ–æ—Ä–º–∞—Ç–∏—Ä–æ–≤–∞–Ω–∏–µ –Ω–µ –±—É–¥–µ—Ç –ø—Ä–æ–≤–µ–¥–µ–Ω–æ." << endl;
 			SetConsoleTextAttribute(hConsole, defCol);
 		}
 		else {
@@ -203,7 +207,7 @@ void msgFormatDisk(int selectedDrive) {
 */
 void msgBeforeTest() {
 	SetConsoleTextAttribute(hConsole, 14);
-	(isLangRu) ? cout << "œÓÒÎÂ Á‡‚Â¯ÂÌËˇ ‡·ÓÚ˚ ÔÓ„‡ÏÏ‡ ÔÓÍ‡ÊÂÚ ÂÁÛÎ¸Ú‡Ú˚ ÚÂÒÚËÓ‚‡ÌËˇ\n\n" : cout << "Test results will be shown once the process is finished\n\n";
+	(isLangRu) ? cout << "–ü–æ—Å–ª–µ –∑–∞–≤–µ—Ä—à–µ–Ω–∏—è —Ä–∞–±–æ—Ç—ã –ø—Ä–æ–≥—Ä–∞–º–º–∞ –ø–æ–∫–∞–∂–µ—Ç —Ä–µ–∑—É–ª—å—Ç–∞—Ç—ã —Ç–µ—Å—Ç–∏—Ä–æ–≤–∞–Ω–∏—è\n\n" : cout << "Test results will be shown once the process is finished\n\n";
 	SetConsoleTextAttribute(hConsole, 7);
 	msgSectorsInfo();       //Displays information about different sectors health types
 }
@@ -215,11 +219,11 @@ void msgBeforeTest() {
 void msgSectorsInfo() {
 
 	if (isLangRu) {		//Russian
-		SetConsoleTextAttribute(hConsole, (15 << 4) | 15);   std::cout << "#";   SetConsoleTextAttribute(hConsole, defCol);   std::cout << " - «‰ÓÓ‚˚È ÒÂÍÚÓ ";	SetConsoleTextAttribute(hConsole, 8);	cout << "(OK)\n";		//Message
-		SetConsoleTextAttribute(hConsole, (8 << 4) | 8);   std::cout << "#";   SetConsoleTextAttribute(hConsole, defCol);   std::cout << " - ÃÂ‰ÎÂÌÌ˚È ÒÂÍÚÓ ";	SetConsoleTextAttribute(hConsole, 8);	cout << "(>75 ms)\n";
-		SetConsoleTextAttribute(hConsole, (6 << 4) | 6);   std::cout << "#";   SetConsoleTextAttribute(hConsole, defCol);   std::cout << " - Œ˜ÂÌ¸ ÏÂ‰ÎÂÌÌ˚È ÒÂÍÚÓ ";	SetConsoleTextAttribute(hConsole, 8);	cout << "(>250 ms)\n";
-		SetConsoleTextAttribute(hConsole, (4 << 4) | 4);   std::cout << "#";   SetConsoleTextAttribute(hConsole, defCol);   std::cout << " -  ËÚË˜ÂÒÍË ÏÂ‰ÎÂÌÌ˚È ÒÂÍÚÓ ";	SetConsoleTextAttribute(hConsole, 8);	cout << "(>2 s)\n";
-		SetConsoleTextAttribute(hConsole, (15 << 4) | 0);   std::cout << "#";   SetConsoleTextAttribute(hConsole, defCol);   std::cout << " - œÎÓıÓÈ ÒÂÍÚÓ\n\n";
+		SetConsoleTextAttribute(hConsole, (15 << 4) | 15);   std::cout << "#";   SetConsoleTextAttribute(hConsole, defCol);   std::cout << " - –ó–¥–æ—Ä–æ–≤—ã–π —Å–µ–∫—Ç–æ—Ä ";	SetConsoleTextAttribute(hConsole, 8);	cout << "(OK)\n";		//Message
+		SetConsoleTextAttribute(hConsole, (8 << 4) | 8);   std::cout << "#";   SetConsoleTextAttribute(hConsole, defCol);   std::cout << " - –ú–µ–¥–ª–µ–Ω–Ω—ã–π —Å–µ–∫—Ç–æ—Ä ";	SetConsoleTextAttribute(hConsole, 8);	cout << "(>75 ms)\n";
+		SetConsoleTextAttribute(hConsole, (6 << 4) | 6);   std::cout << "#";   SetConsoleTextAttribute(hConsole, defCol);   std::cout << " - –û—á–µ–Ω—å –º–µ–¥–ª–µ–Ω–Ω—ã–π —Å–µ–∫—Ç–æ—Ä ";	SetConsoleTextAttribute(hConsole, 8);	cout << "(>250 ms)\n";
+		SetConsoleTextAttribute(hConsole, (4 << 4) | 4);   std::cout << "#";   SetConsoleTextAttribute(hConsole, defCol);   std::cout << " - –ö—Ä–∏—Ç–∏—á–µ—Å–∫–∏ –º–µ–¥–ª–µ–Ω–Ω—ã–π —Å–µ–∫—Ç–æ—Ä ";	SetConsoleTextAttribute(hConsole, 8);	cout << "(>2 s)\n";
+		SetConsoleTextAttribute(hConsole, (15 << 4) | 0);   std::cout << "#";   SetConsoleTextAttribute(hConsole, defCol);   std::cout << " - –ü–ª–æ—Ö–æ–π —Å–µ–∫—Ç–æ—Ä\n\n";
 	}
 	else {		//English
 		SetConsoleTextAttribute(hConsole, (15 << 4) | 15);   std::cout << "#";   SetConsoleTextAttribute(hConsole, defCol);   std::cout << " - Healthy sector ";	SetConsoleTextAttribute(hConsole, 8);	cout << "(OK)\n";		//Message
@@ -243,14 +247,14 @@ void msgSectorsInfo() {
 */
 void msgWriteTestResults(unsigned long long okCount, int slowCount, int verySlowCount, int critCount, int badCount, double writeSpeed) {
 	SetConsoleTextAttribute(hConsole, defCol);
-	(isLangRu) ? cout << "\n\n\n–ÂÁÛÎ¸Ú‡Ú˚ ÚÂÒÚ‡ Á‡ÔËÒË:\n" : cout << "\n\n\nWrite test results:\n";
+	(isLangRu) ? cout << "\n\n\n–†–µ–∑—É–ª—å—Ç–∞—Ç—ã —Ç–µ—Å—Ç–∞ –∑–∞–ø–∏—Å–∏:\n" : cout << "\n\n\nWrite test results:\n";
 	SetConsoleTextAttribute(hConsole, (15 << 4) | 15);   cout << "\t#";   SetConsoleTextAttribute(hConsole, defCol);   cout << " (OK): " << okCount << endl;
 	SetConsoleTextAttribute(hConsole, (8 << 4) | 8);   cout << "\t#";   SetConsoleTextAttribute(hConsole, defCol);   cout << " (>75 ms): " << slowCount << endl;
 	SetConsoleTextAttribute(hConsole, (6 << 4) | 6);   cout << "\t#";   SetConsoleTextAttribute(hConsole, defCol);   cout << " (>250 ms): " << verySlowCount << endl;
 	SetConsoleTextAttribute(hConsole, (4 << 4) | 4);   cout << "\t#";   SetConsoleTextAttribute(hConsole, defCol);   cout << " (>2 s): " << critCount << endl;
 	SetConsoleTextAttribute(hConsole, (15 << 4) | 0);   cout << "\t#";   SetConsoleTextAttribute(hConsole, defCol);   cout << " (Error): " << badCount << endl;
-	SetConsoleTextAttribute(hConsole, (2 << 4) | 2);	cout << "\t#";	SetConsoleTextAttribute(hConsole, defCol);	(isLangRu) ? cout << " «‡ˇ‚ÎÂÌÌ˚È Ó·˙ÂÏ ‰ËÒÍ‡ ÒÓÓÚ‚ÂÚÒÚ‚ÛÂÚ ‰ÂÈÒÚ‚ËÚÂÎ¸ÌÓÏÛ\n" : cout << " The reported drive capacity matches the actual size\n";
-	cout << "\t ";	(isLangRu) ? cout << " —ÍÓÓÒÚ¸ Á‡ÔËÒË: " : cout << " Write speed: ";	cout << writeSpeed << " MB/s\n\n";
+	SetConsoleTextAttribute(hConsole, (2 << 4) | 2);	cout << "\t#";	SetConsoleTextAttribute(hConsole, defCol);	(isLangRu) ? cout << " –ó–∞—è–≤–ª–µ–Ω–Ω—ã–π –æ–±—ä–µ–º –¥–∏—Å–∫–∞ —Å–æ–æ—Ç–≤–µ—Ç—Å—Ç–≤—É–µ—Ç –¥–µ–π—Å—Ç–≤–∏—Ç–µ–ª—å–Ω–æ–º—É\n" : cout << " The reported drive capacity matches the actual size\n";
+	cout << "\t ";	(isLangRu) ? cout << " –°–∫–æ—Ä–æ—Å—Ç—å –∑–∞–ø–∏—Å–∏: " : cout << " Write speed: ";	cout << writeSpeed << " MB/s\n\n";
 }
 
 
@@ -269,10 +273,10 @@ void msgReadTestResults(unsigned long long okCountWrite, int slowCountWrite, int
 
 	msgWriteTestResults(okCountWrite, slowCountWrite, verySlowCountWrite, critCountWrite, badCountWrite, writeSpeed);
 
-	(isLangRu) ? cout << "\n–ÂÁÛÎ¸Ú‡Ú˚ ÚÂÒÚ‡ ˜ÚÂÌËˇ:\n" : cout << "\nRead test results:\n";
+	(isLangRu) ? cout << "\n–†–µ–∑—É–ª—å—Ç–∞—Ç—ã —Ç–µ—Å—Ç–∞ —á—Ç–µ–Ω–∏—è:\n" : cout << "\nRead test results:\n";
 	SetConsoleTextAttribute(hConsole, (4 << 4) | 4);   cout << "\t#";   SetConsoleTextAttribute(hConsole, defCol);   cout << " (>2 s): " << critCount << endl;
 	SetConsoleTextAttribute(hConsole, (15 << 4) | 0);   cout << "\t#";   SetConsoleTextAttribute(hConsole, defCol);   cout << " (Error): " << badCount << endl;
-	cout << "\t ";	(isLangRu) ? cout << " —ÍÓÓÒÚ¸ ˜ÚÂÌËˇ: " : cout << " Read speed: ";	cout << readSpeed << " MB/s\n\n";
+	cout << "\t ";	(isLangRu) ? cout << " –°–∫–æ—Ä–æ—Å—Ç—å —á—Ç–µ–Ω–∏—è: " : cout << " Read speed: ";	cout << readSpeed << " MB/s\n\n";
 }
 
 
@@ -284,10 +288,10 @@ void msgReadTestResults(unsigned long long okCountWrite, int slowCountWrite, int
 void msgFakeCapacity(unsigned long long actualCapacity) {		
 	if (isLangRu) {		//Russian
 		SetConsoleTextAttribute(hConsole, errCol);
-		cout << "\n\nœÓıÓÊÂ Â‡Î¸Ì˚È ‡ÁÏÂ ‚‡¯Â„Ó Ì‡ÍÓÔËÚÂÎˇ ÏÂÌ¸¯Â, ˜ÂÏ Á‡ˇ‚ÎˇÂÚ ÔÓËÁ‚Ó‰ËÚÂÎ¸!";		//Message
+		cout << "\n\n–ü–æ—Ö–æ–∂–µ —Ä–µ–∞–ª—å–Ω—ã–π —Ä–∞–∑–º–µ—Ä –≤–∞—à–µ–≥–æ –Ω–∞–∫–æ–ø–∏—Ç–µ–ª—è –º–µ–Ω—å—à–µ, —á–µ–º –∑–∞—è–≤–ª—è–µ—Ç –ø—Ä–æ–∏–∑–≤–æ–¥–∏—Ç–µ–ª—å!";		//Message
 		SetConsoleTextAttribute(hConsole, defCol);
-		cout << "\n\n›ÚÓ ÓÔÂ‰ÂÎˇÂÚÒˇ ·ÓÎ¸¯ËÏ ÍÓÎË˜ÂÒÚ‚ÓÏ Ó¯Ë·ÓÍ Á‡ÔËÒË (> 1000) ÔÓ‰ ˇ‰.";
-		cout << "\n≈ÒÎË Ò ÔÓ‰ÍÎ˛˜ÂÌËÂÏ ‚ÒÂ ‚ ÔÓˇ‰ÍÂ, ÚÓ Â‡Î¸Ì˚È ‡ÁÏÂ ‚‡¯Â„Ó Ì‡ÍÓÔËÚÂÎˇ - ";
+		cout << "\n\n–≠—Ç–æ –æ–ø—Ä–µ–¥–µ–ª—è–µ—Ç—Å—è –±–æ–ª—å—à–∏–º –∫–æ–ª–∏—á–µ—Å—Ç–≤–æ–º –æ—à–∏–±–æ–∫ –∑–∞–ø–∏—Å–∏ (> 1000) –ø–æ–¥ —Ä—è–¥.";
+		cout << "\n–ï—Å–ª–∏ —Å –ø–æ–¥–∫–ª—é—á–µ–Ω–∏–µ–º –≤—Å–µ –≤ –ø–æ—Ä—è–¥–∫–µ, —Ç–æ —Ä–µ–∞–ª—å–Ω—ã–π —Ä–∞–∑–º–µ—Ä –≤–∞—à–µ–≥–æ –Ω–∞–∫–æ–ø–∏—Ç–µ–ª—è - ";
 		SetConsoleTextAttribute(hConsole, selCol);
 		cout << actualCapacity << " MB.\n\n";
 		SetConsoleTextAttribute(hConsole, defCol);
@@ -311,7 +315,7 @@ void msgFakeCapacity(unsigned long long actualCapacity) {
 * @brief Message appears before formatting the drive to end the test
 */
 void msgFormatBeforeExiting() {
-	(isLangRu) ? cout << "\nœÂÂ‰ ‚˚ıÓ‰ÓÏ ‚ ÏÂÌ˛ ÔÓ„‡ÏÏ‡ ·ÂÁÓÔ‡ÒÌÓ ÓÚÙÓÏ‡ÚËÛÂÚ ‰ËÒÍ...\n\n" : cout << "\nThe drive will be safely formatted before exiting to the menu...\n\n";
+	(isLangRu) ? cout << "\n–ü–µ—Ä–µ–¥ –≤—ã—Ö–æ–¥–æ–º –≤ –º–µ–Ω—é –ø—Ä–æ–≥—Ä–∞–º–º–∞ –±–µ–∑–æ–ø–∞—Å–Ω–æ –æ—Ç—Ñ–æ—Ä–º–∞—Ç–∏—Ä—É–µ—Ç –¥–∏—Å–∫...\n\n" : cout << "\nThe drive will be safely formatted before exiting to the menu...\n\n";
 }
 
 
@@ -330,21 +334,21 @@ void msgDisplayTestData(json jDrives, int selectedTest, int customTestNumber) {
 	if (isLangRu) {		//Russian
 		cout << "===================================\n";
 
-		(customTestNumber == -1) ? cout << "“ÂÒÚ ÌÓÏÂ " << selectedTest + 1 << endl : cout << "“ÂÒÚ ÌÓÏÂ " << customTestNumber << endl;	//Display test number
+		(customTestNumber == -1) ? cout << "–¢–µ—Å—Ç –Ω–æ–º–µ—Ä " << selectedTest + 1 << endl : cout << "–¢–µ—Å—Ç –Ω–æ–º–µ—Ä " << customTestNumber << endl;	//Display test number
 
 		cout
-			<< "¡ÛÍ‚‡ ‰ËÒÍ‡: " << jDrives[selectedTest]["drive_letter"] << endl
-			<< "®ÏÍÓÒÚ¸: " << jDrives[selectedTest]["total_mb"] << " MB" << endl
-			<< "\n—ÂÍÚÓ‡:\n"
-			<< "\tÃÂ‰ÎÂÌÌ˚ı ÒÂÍÚÓÓ‚: " << jDrives[selectedTest]["slow_count"] << endl
-			<< "\tŒ˜ÂÌ¸ ÏÂ‰ÎÂÌÌ˚ı ÒÂÍÚÓÓ‚: " << jDrives[selectedTest]["very_slow_count"] << endl
-			<< "\t ËÚ. ÒÂÍÚÓÓ‚: " << jDrives[selectedTest]["crit_count"] << endl
-			<< "\tœÎÓıËı ÒÂÍÚÓÓ‚: " << jDrives[selectedTest]["bad_count"] << endl
-			<< "\n\t ËÚ. ÒÂÍÚÓÓ‚ (˜ÚÂÌËÂ): " << jDrives[selectedTest]["crit_count_read"] << endl
-			<< "\tœÎÓıËı ÒÂÍÚÓÓ‚ (˜ÚÂÌËÂ): " << jDrives[selectedTest]["bad_count_read"] << endl
-			<< "\n—ÍÓÓÒÚ¸:\n"
-			<< "\t—ÍÓÓÒÚ¸ Á‡ÔËÒË: " << jDrives[selectedTest]["write_speed"] << " MB/s" << endl
-			<< "\t—ÍÓÓÒÚ¸ ˜ÚÂÌËˇ: " << jDrives[selectedTest]["read_speed"] << " MB/s" << endl;
+			<< "–ë—É–∫–≤–∞ –¥–∏—Å–∫–∞: " << jDrives[selectedTest]["drive_letter"] << endl
+			<< "–Å–º–∫–æ—Å—Ç—å: " << jDrives[selectedTest]["total_mb"] << " MB" << endl
+			<< "\n–°–µ–∫—Ç–æ—Ä–∞:\n"
+			<< "\t–ú–µ–¥–ª–µ–Ω–Ω—ã—Ö —Å–µ–∫—Ç–æ—Ä–æ–≤: " << jDrives[selectedTest]["slow_count"] << endl
+			<< "\t–û—á–µ–Ω—å –º–µ–¥–ª–µ–Ω–Ω—ã—Ö —Å–µ–∫—Ç–æ—Ä–æ–≤: " << jDrives[selectedTest]["very_slow_count"] << endl
+			<< "\t–ö—Ä–∏—Ç. —Å–µ–∫—Ç–æ—Ä–æ–≤: " << jDrives[selectedTest]["crit_count"] << endl
+			<< "\t–ü–ª–æ—Ö–∏—Ö —Å–µ–∫—Ç–æ—Ä–æ–≤: " << jDrives[selectedTest]["bad_count"] << endl
+			<< "\n\t–ö—Ä–∏—Ç. —Å–µ–∫—Ç–æ—Ä–æ–≤ (—á—Ç–µ–Ω–∏–µ): " << jDrives[selectedTest]["crit_count_read"] << endl
+			<< "\t–ü–ª–æ—Ö–∏—Ö —Å–µ–∫—Ç–æ—Ä–æ–≤ (—á—Ç–µ–Ω–∏–µ): " << jDrives[selectedTest]["bad_count_read"] << endl
+			<< "\n–°–∫–æ—Ä–æ—Å—Ç—å:\n"
+			<< "\t–°–∫–æ—Ä–æ—Å—Ç—å –∑–∞–ø–∏—Å–∏: " << jDrives[selectedTest]["write_speed"] << " MB/s" << endl
+			<< "\t–°–∫–æ—Ä–æ—Å—Ç—å —á—Ç–µ–Ω–∏—è: " << jDrives[selectedTest]["read_speed"] << " MB/s" << endl;
 		cout << "===================================\n\n\n";
 	}
 	else {		//English
@@ -381,7 +385,7 @@ void msgDisplayShortTestData(json jDrives, int selectedTest) {
 		cout << "No. " << selectedTest + 1 << ";";
 		SetConsoleTextAttribute(hConsole, defCol);
 
-		cout << "  ¡” ¬: " << jDrives[selectedTest]["drive_letter"] << ";  ®Ã : " << jDrives[selectedTest]["total_mb"] << " MB; Ã≈ƒÀ: " << jDrives[selectedTest]["slow_count"] << endl;
+		cout << "  –ë–£–ö–í: " << jDrives[selectedTest]["drive_letter"] << ";  –Å–ú–ö: " << jDrives[selectedTest]["total_mb"] << " MB; –ú–ï–î–õ: " << jDrives[selectedTest]["slow_count"] << endl;
 	} 
 	else {
 		SetConsoleTextAttribute(hConsole, menuCol);
@@ -404,15 +408,15 @@ void msgDisplayTestComparison(json jComparisonOne, json jComparisonTwo) {
 	if (isLangRu) {		//Russian
 		cout << "===================================\n";
 
-		cout << "“ÂÒÚ ÌÓÏÂ 2 (—‡‚ÌÂÌËÂ) \n";
+		cout << "–¢–µ—Å—Ç –Ω–æ–º–µ—Ä 2 (–°—Ä–∞–≤–Ω–µ–Ω–∏–µ) \n";
 
-		cout << "¡ÛÍ‚‡ ‰ËÒÍ‡: " << jComparisonTwo[0]["drive_letter"];
+		cout << "–ë—É–∫–≤–∞ –¥–∏—Å–∫–∞: " << jComparisonTwo[0]["drive_letter"];
 		if (jComparisonOne[0]["drive_letter"] != jComparisonTwo[0]["drive_letter"]) { SetConsoleTextAttribute(hConsole, 14);	cout << " (?)\n"; }
 		else { SetConsoleTextAttribute(hConsole, 8);	cout << " (=)\n"; }
 		SetConsoleTextAttribute(hConsole, defCol);
 
 
-		cout << "®ÏÍÓÒÚ¸: " << jComparisonTwo[0]["total_mb"] << " MB";
+		cout << "–Å–º–∫–æ—Å—Ç—å: " << jComparisonTwo[0]["total_mb"] << " MB";
 		if ((jComparisonOne[0]["total_mb"] == jComparisonTwo[0]["total_mb"])) { SetConsoleTextAttribute(hConsole, 8);	cout << " (=)\n"; }
 		else {
 
@@ -423,8 +427,8 @@ void msgDisplayTestComparison(json jComparisonOne, json jComparisonTwo) {
 		SetConsoleTextAttribute(hConsole, defCol);
 
 
-		cout << "\n—ÂÍÚÓ‡:\n";
-		cout << "\tÃÂ‰ÎÂÌÌ˚ı ÒÂÍÚÓÓ‚: " << jComparisonTwo[0]["slow_count"];
+		cout << "\n–°–µ–∫—Ç–æ—Ä–∞:\n";
+		cout << "\t–ú–µ–¥–ª–µ–Ω–Ω—ã—Ö —Å–µ–∫—Ç–æ—Ä–æ–≤: " << jComparisonTwo[0]["slow_count"];
 		if ((jComparisonOne[0]["slow_count"] == jComparisonTwo[0]["slow_count"])) { SetConsoleTextAttribute(hConsole, 8);	cout << " (=)\n"; }
 		else {
 			if ((jComparisonOne[0]["slow_count"] > jComparisonTwo[0]["slow_count"])) { SetConsoleTextAttribute(hConsole, 10);	cout << " (+)\n"; }
@@ -433,7 +437,7 @@ void msgDisplayTestComparison(json jComparisonOne, json jComparisonTwo) {
 		SetConsoleTextAttribute(hConsole, defCol);
 
 
-		cout << "\tŒ˜ÂÌ¸ ÏÂ‰ÎÂÌÌ˚ı ÒÂÍÚÓÓ‚: " << jComparisonTwo[0]["very_slow_count"];
+		cout << "\t–û—á–µ–Ω—å –º–µ–¥–ª–µ–Ω–Ω—ã—Ö —Å–µ–∫—Ç–æ—Ä–æ–≤: " << jComparisonTwo[0]["very_slow_count"];
 		if ((jComparisonOne[0]["very_slow_count"] == jComparisonTwo[0]["very_slow_count"])) { SetConsoleTextAttribute(hConsole, 8);	cout << " (=)\n"; }
 		else {
 			if ((jComparisonOne[0]["very_slow_count"] > jComparisonTwo[0]["very_slow_count"])) { SetConsoleTextAttribute(hConsole, 10);	cout << " (+)\n"; }
@@ -442,7 +446,7 @@ void msgDisplayTestComparison(json jComparisonOne, json jComparisonTwo) {
 		SetConsoleTextAttribute(hConsole, defCol);
 
 
-		cout << "\t ËÚ. ÒÂÍÚÓÓ‚: " << jComparisonTwo[0]["crit_count"];
+		cout << "\t–ö—Ä–∏—Ç. —Å–µ–∫—Ç–æ—Ä–æ–≤: " << jComparisonTwo[0]["crit_count"];
 		if ((jComparisonOne[0]["crit_count"] == jComparisonTwo[0]["crit_count"])) { SetConsoleTextAttribute(hConsole, 8);	cout << " (=)\n"; }
 		else {
 			if ((jComparisonOne[0]["crit_count"] > jComparisonTwo[0]["crit_count"])) { SetConsoleTextAttribute(hConsole, 10);	cout << " (+)\n"; }
@@ -451,7 +455,7 @@ void msgDisplayTestComparison(json jComparisonOne, json jComparisonTwo) {
 		SetConsoleTextAttribute(hConsole, defCol);
 
 
-		cout << "\tœÎÓıËı ÒÂÍÚÓÓ‚: " << jComparisonTwo[0]["bad_count"];
+		cout << "\t–ü–ª–æ—Ö–∏—Ö —Å–µ–∫—Ç–æ—Ä–æ–≤: " << jComparisonTwo[0]["bad_count"];
 		if ((jComparisonOne[0]["bad_count"] == jComparisonTwo[0]["bad_count"])) { SetConsoleTextAttribute(hConsole, 8);	cout << " (=)\n"; }
 		else {
 			if ((jComparisonOne[0]["bad_count"] > jComparisonTwo[0]["bad_count"])) { SetConsoleTextAttribute(hConsole, 10);	cout << " (+)\n"; }
@@ -460,7 +464,7 @@ void msgDisplayTestComparison(json jComparisonOne, json jComparisonTwo) {
 		SetConsoleTextAttribute(hConsole, defCol);
 
 
-		cout << "\n\t ËÚ. ÒÂÍÚÓÓ‚ (˜ÚÂÌËÂ): " << jComparisonTwo[0]["crit_count_read"];
+		cout << "\n\t–ö—Ä–∏—Ç. —Å–µ–∫—Ç–æ—Ä–æ–≤ (—á—Ç–µ–Ω–∏–µ): " << jComparisonTwo[0]["crit_count_read"];
 		if ((jComparisonOne[0]["crit_count_read"] == jComparisonTwo[0]["crit_count_read"])) { SetConsoleTextAttribute(hConsole, 8);	cout << " (=)\n"; }
 		else {
 			if ((jComparisonOne[0]["crit_count_read"] > jComparisonTwo[0]["crit_count_read"])) { SetConsoleTextAttribute(hConsole, 10);	cout << " (+)\n"; }
@@ -469,7 +473,7 @@ void msgDisplayTestComparison(json jComparisonOne, json jComparisonTwo) {
 		SetConsoleTextAttribute(hConsole, defCol);
 
 
-		cout << "\tœÎÓıËı ÒÂÍÚÓÓ‚ (˜ÚÂÌËÂ): " << jComparisonTwo[0]["bad_count_read"];
+		cout << "\t–ü–ª–æ—Ö–∏—Ö —Å–µ–∫—Ç–æ—Ä–æ–≤ (—á—Ç–µ–Ω–∏–µ): " << jComparisonTwo[0]["bad_count_read"];
 		if ((jComparisonOne[0]["bad_count_read"] == jComparisonTwo[0]["bad_count_read"])) { SetConsoleTextAttribute(hConsole, 8);	cout << " (=)\n"; }
 		else {
 			if ((jComparisonOne[0]["bad_count_read"] > jComparisonTwo[0]["bad_count_read"])) { SetConsoleTextAttribute(hConsole, 10);	cout << " (+)\n"; }
@@ -478,8 +482,8 @@ void msgDisplayTestComparison(json jComparisonOne, json jComparisonTwo) {
 		SetConsoleTextAttribute(hConsole, defCol);
 
 
-		cout << "\n—ÍÓÓÒÚ¸:\n";
-		cout << "\t—ÍÓÓÒÚ¸ Á‡ÔËÒË: " << jComparisonTwo[0]["write_speed"] << " MB/s";
+		cout << "\n–°–∫–æ—Ä–æ—Å—Ç—å:\n";
+		cout << "\t–°–∫–æ—Ä–æ—Å—Ç—å –∑–∞–ø–∏—Å–∏: " << jComparisonTwo[0]["write_speed"] << " MB/s";
 		if ((jComparisonOne[0]["write_speed"] == jComparisonTwo[0]["write_speed"])) { SetConsoleTextAttribute(hConsole, 8);	cout << " (=)\n"; }
 		else {
 			if ((jComparisonOne[0]["write_speed"] < jComparisonTwo[0]["write_speed"])) { SetConsoleTextAttribute(hConsole, 10);	cout << " (+)\n"; }
@@ -488,7 +492,7 @@ void msgDisplayTestComparison(json jComparisonOne, json jComparisonTwo) {
 		SetConsoleTextAttribute(hConsole, defCol);
 
 
-		cout << "\t—ÍÓÓÒÚ¸ ˜ÚÂÌËˇ: " << jComparisonTwo[0]["read_speed"] << " MB/s";
+		cout << "\t–°–∫–æ—Ä–æ—Å—Ç—å —á—Ç–µ–Ω–∏—è: " << jComparisonTwo[0]["read_speed"] << " MB/s";
 		if ((jComparisonOne[0]["read_speed"] == jComparisonTwo[0]["read_speed"])) { SetConsoleTextAttribute(hConsole, 8);	cout << " (=)\n"; }
 		else {
 			if ((jComparisonOne[0]["read_speed"] < jComparisonTwo[0]["read_speed"])) { SetConsoleTextAttribute(hConsole, 10);	cout << " (+)\n"; }
@@ -607,9 +611,6 @@ void msgAbout() {
 	cout << "Thanks for using USB Test! \n\n";
 
 	system("pause");
-
-	mainMenu();
-
 }
 
 
@@ -624,7 +625,7 @@ string msgFeedback() {
 	//First question (rate), Russian
 	if (isLangRu) {
 		SetConsoleTextAttribute(hConsole, menuCol);
-		cout << "ŒˆÂÌËÚÂ ÔÓ„‡ÏÏÛ ÓÚ 1 ‰Ó 5 ·‡ÎÎÓ‚: "; cin >> rate;
+		cout << "–û—Ü–µ–Ω–∏—Ç–µ –ø—Ä–æ–≥—Ä–∞–º–º—É –æ—Ç 1 –¥–æ 5 –±–∞–ª–ª–æ–≤: "; cin >> rate;
 		SetConsoleTextAttribute(hConsole, defCol);
 
 		system("cls");
@@ -633,11 +634,11 @@ string msgFeedback() {
 		//Second question (feedback) if rate is equal or higher than 5, Russian
 		if (rate >= 5) {	
 			SetConsoleTextAttribute(hConsole, menuCol);
-			cout << "—Ô‡ÒË·Ó Á‡ ÓˆÂÌÍÛ! ¬˚·ÂËÚÂ ÚÓ, ˜ÚÓ ÔÓÌ‡‚ËÎÓÒ¸ ·ÓÎ¸¯Â ‚ÒÂ„Ó (1, 2...), ÔË‰ÛÏ‡ÈÚÂ ÚÂÍÒÚ Ò‡ÏË ËÎË ÔÓÒÚÓ ÓÒÚ‡‚¸ÚÂ ÓÚÁ˚‚ Ì‡ SourceForge.\n";
-			cout << "¬˚ ÏÓÊÂÚÂ Í‡Í ‚˚·‡Ú¸ ÚÓÎ¸ÍÓ ‚‡Ë‡ÌÚ˚ ÓÚ‚ÂÚ‡, Ú‡Í Ë ‰ÓÔÓÎÌËÚ¸ Ëı Ò‚ÓËÏË ÍÓÏÏÂÌÚ‡ËˇÏË: \n\n";
+			cout << "–°–ø–∞—Å–∏–±–æ –∑–∞ –æ—Ü–µ–Ω–∫—É! –í—ã–±–µ—Ä–∏—Ç–µ —Ç–æ, —á—Ç–æ –ø–æ–Ω—Ä–∞–≤–∏–ª–æ—Å—å –±–æ–ª—å—à–µ –≤—Å–µ–≥–æ (1, 2...), –ø—Ä–∏–¥—É–º–∞–π—Ç–µ —Ç–µ–∫—Å—Ç —Å–∞–º–∏ –∏–ª–∏ –ø—Ä–æ—Å—Ç–æ –æ—Å—Ç–∞–≤—å—Ç–µ –æ—Ç–∑—ã–≤ –Ω–∞ SourceForge.\n";
+			cout << "–í—ã –º–æ–∂–µ—Ç–µ –∫–∞–∫ –≤—ã–±—Ä–∞—Ç—å —Ç–æ–ª—å–∫–æ –≤–∞—Ä–∏–∞–Ω—Ç—ã –æ—Ç–≤–µ—Ç–∞, —Ç–∞–∫ –∏ –¥–æ–ø–æ–ª–Ω–∏—Ç—å –∏—Ö —Å–≤–æ–∏–º–∏ –∫–æ–º–º–µ–Ω—Ç–∞—Ä–∏—è–º–∏: \n\n";
 			SetConsoleTextAttribute(hConsole, defCol);
 
-			cout << "1. ƒËÁ‡ÈÌ \n2. —ÍÓÓÒÚ¸ \n3. ”‰Ó·ÒÚ‚Ó \n4. ‘ÛÌÍˆËÓÌ‡Î \n5.“Ó˜ÌÓÒÚ¸ \n6. œ‡ÍÚË˜ÌÓÒÚ¸ \n7. ƒÛ„ÓÂ\n\n";
+			cout << "1. –î–∏–∑–∞–π–Ω \n2. –°–∫–æ—Ä–æ—Å—Ç—å \n3. –£–¥–æ–±—Å—Ç–≤–æ \n4. –§—É–Ω–∫—Ü–∏–æ–Ω–∞–ª \n5.–¢–æ—á–Ω–æ—Å—Ç—å \n6. –ü—Ä–∞–∫—Ç–∏—á–Ω–æ—Å—Ç—å \n7. –î—Ä—É–≥–æ–µ\n\n";
 
 			cin.ignore((numeric_limits<streamsize>::max)(), '\n');
 			getline(cin, feedback);
@@ -646,11 +647,11 @@ string msgFeedback() {
 		//Second question (feedback) if rate is lower than 5, Russian
 		else {
 			SetConsoleTextAttribute(hConsole, menuCol);
-			cout << "—Ô‡ÒË·Ó Á‡ ÓˆÂÌÍÛ! ¬˚·ÂËÚÂ ÚÓ, ˜ÚÓ ÌÂ ÔÓÌ‡‚ËÎÓÒ¸ (1, 2...) ËÎË ÔË‰ÛÏ‡ÈÚÂ ÚÂÍÒÚ Ò‡ÏË:\n";
-			cout << "¬˚ ÏÓÊÂÚÂ Í‡Í ‚˚·‡Ú¸ ÚÓÎ¸ÍÓ ‚‡Ë‡ÌÚ˚ ÓÚ‚ÂÚ‡, Ú‡Í Ë ‰ÓÔÓÎÌËÚ¸ Ëı Ò‚ÓËÏË ÍÓÏÏÂÌÚ‡ËˇÏË: \n\n";
+			cout << "–°–ø–∞—Å–∏–±–æ –∑–∞ –æ—Ü–µ–Ω–∫—É! –í—ã–±–µ—Ä–∏—Ç–µ —Ç–æ, —á—Ç–æ –Ω–µ –ø–æ–Ω—Ä–∞–≤–∏–ª–æ—Å—å (1, 2...) –∏–ª–∏ –ø—Ä–∏–¥—É–º–∞–π—Ç–µ —Ç–µ–∫—Å—Ç —Å–∞–º–∏:\n";
+			cout << "–í—ã –º–æ–∂–µ—Ç–µ –∫–∞–∫ –≤—ã–±—Ä–∞—Ç—å —Ç–æ–ª—å–∫–æ –≤–∞—Ä–∏–∞–Ω—Ç—ã –æ—Ç–≤–µ—Ç–∞, —Ç–∞–∫ –∏ –¥–æ–ø–æ–ª–Ω–∏—Ç—å –∏—Ö —Å–≤–æ–∏–º–∏ –∫–æ–º–º–µ–Ω—Ç–∞—Ä–∏—è–º–∏: \n\n";
 			SetConsoleTextAttribute(hConsole, defCol);
 
-			cout << "1. ƒËÁ‡ÈÌ \n2. —ÍÓÓÒÚ¸ \n3. ”‰Ó·ÒÚ‚Ó \n4. ‘ÛÌÍˆËÓÌ‡Î \n5. “Ó˜ÌÓÒÚ¸ \n6. œ‡ÍÚË˜ÌÓÒÚ¸ \n7. ¡‡„Ë/ ‡¯Ë \n8.ƒÛ„ÓÂ\n\n";
+			cout << "1. –î–∏–∑–∞–π–Ω \n2. –°–∫–æ—Ä–æ—Å—Ç—å \n3. –£–¥–æ–±—Å—Ç–≤–æ \n4. –§—É–Ω–∫—Ü–∏–æ–Ω–∞–ª \n5. –¢–æ—á–Ω–æ—Å—Ç—å \n6. –ü—Ä–∞–∫—Ç–∏—á–Ω–æ—Å—Ç—å \n7. –ë–∞–≥–∏/–ö—Ä–∞—à–∏ \n8.–î—Ä—É–≥–æ–µ\n\n";
 
 			cin.ignore((numeric_limits<streamsize>::max)(), '\n');
 			getline(cin, feedback);
@@ -701,11 +702,11 @@ string msgFeedback() {
 	string suggestion;
 	if (isLangRu) {		//Russian
 		SetConsoleTextAttribute(hConsole, menuCol);
-		cout << "œÓÊ‡ÎÛÈÒÚ‡, ‡ÒÒÍ‡ÊËÚÂ, ˜Â„Ó, ÔÓ ‚‡¯ÂÏÛ ÏÌÂÌË˛, USB Test ÌÂ ı‚‡Ú‡ÂÚ ·ÓÎ¸¯Â ‚ÒÂ„Ó, ÔÓÒÎÂ ˜Â„Ó ÔÓ„‡ÏÏ‡ ÔÂÂÈ‰ÂÚ Í ·ÂÁÓÔ‡ÒÌÓÏÛ ÙÓÏ‡ÚËÓ‚‡ÌË˛ USB-Ì‡ÍÓÔËÚÂÎˇ ÔÂÂ‰ ‚˚ıÓ‰ÓÏ: \n";
+		cout << "–ü–æ–∂–∞–ª—É–π—Å—Ç–∞, —Ä–∞—Å—Å–∫–∞–∂–∏—Ç–µ, —á–µ–≥–æ, –ø–æ –≤–∞—à–µ–º—É –º–Ω–µ–Ω–∏—é, USB Test –Ω–µ —Ö–≤–∞—Ç–∞–µ—Ç –±–æ–ª—å—à–µ –≤—Å–µ–≥–æ, –ø–æ—Å–ª–µ —á–µ–≥–æ –ø—Ä–æ–≥—Ä–∞–º–º–∞ –ø–µ—Ä–µ–π–¥–µ—Ç –∫ –±–µ–∑–æ–ø–∞—Å–Ω–æ–º—É —Ñ–æ—Ä–º–∞—Ç–∏—Ä–æ–≤–∞–Ω–∏—é USB-–Ω–∞–∫–æ–ø–∏—Ç–µ–ª—è –ø–µ—Ä–µ–¥ –≤—ã—Ö–æ–¥–æ–º: \n";
 		SetConsoleTextAttribute(hConsole, defCol);
 
 		getline(cin, suggestion);
-		cout << "\n—Ô‡ÒË·Ó Á‡ ÓÚ‚ÂÚ!\n";
+		cout << "\n–°–ø–∞—Å–∏–±–æ –∑–∞ –æ—Ç–≤–µ—Ç!\n";
 	}
 	else {		//English
 		SetConsoleTextAttribute(hConsole, menuCol);

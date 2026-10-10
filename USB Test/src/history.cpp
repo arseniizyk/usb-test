@@ -19,12 +19,11 @@ void viewHistory() {
 	system("cls");
 	readData();
 
-	for (int i = 0; i < jDrives.size(); i++)
+	for (size_t i = 0; i < jDrives.size(); i++)
 	{
-		displayTestData(i);		//Displays each test record
+		displayTestData(static_cast<int>(i));		//Displays each test record
 	}
 	system("pause");
-	menuHistory();
 }
 
 
@@ -34,54 +33,50 @@ void viewHistory() {
 void menuImportExport() {
 	system("title USB TEST - Import/Export");
 
-	system("cls");
-	int selectedOption = -1;
-
-	if (isLangRu) {
-		SetConsoleTextAttribute(hConsole, menuCol);
-		cout << "ÈÌÏÎÐÒ È ÝÊÑÏÎÐÒ";
-		SetConsoleTextAttribute(hConsole, defCol);
-
-		cout << "\n\n1. \tÈìïîðòèðîâàòü òåñò èç ôàéëà";
-		cout << "\n2. \tÝêñïîðòèðîâàòü òåñò â ôàéë";
-		cout << "\n3. \tÍàçàä";
-		cout << "\n\nÂâåäèòå íîìåð ïóíêòà ìåíþ: \n";
-	}
-	else {
-		SetConsoleTextAttribute(hConsole, menuCol);
-		cout << "IMPORT AND EXPORT";
-		SetConsoleTextAttribute(hConsole, defCol);
-
-		cout << "\n\n1. \tImport test from file";
-		cout << "\n2. \tExport test to file";
-		cout << "\n3. \tBack";
-		cout << "\n\nEnter the menu option number: \n";
-	}
-	cin >> selectedOption;
-
-	if (selectedOption > 3 || selectedOption < 1 || cin.fail()) {
-		msgInputError(false);
+	while (true) {
 		system("cls");
-		menuImportExport();
-	}
+		int selectedOption = -1;
 
-	//Menu logic
-	switch (selectedOption) {
+		if (isLangRu) {
+			SetConsoleTextAttribute(hConsole, menuCol);
+			cout << "Ð˜ÐœÐŸÐžÐ Ð¢ Ð˜ Ð­ÐšÐ¡ÐŸÐžÐ Ð¢";
+			SetConsoleTextAttribute(hConsole, defCol);
+
+			cout << "\n\n1. \tÐ˜Ð¼Ð¿Ð¾Ñ€Ñ‚Ð¸Ñ€Ð¾Ð²Ð°Ñ‚ÑŒ Ñ‚ÐµÑÑ‚ Ð¸Ð· Ñ„Ð°Ð¹Ð»Ð°";
+			cout << "\n2. \tÐ­ÐºÑÐ¿Ð¾Ñ€Ñ‚Ð¸Ñ€Ð¾Ð²Ð°Ñ‚ÑŒ Ñ‚ÐµÑÑ‚ Ð² Ñ„Ð°Ð¹Ð»";
+			cout << "\n3. \tÐÐ°Ð·Ð°Ð´";
+			cout << "\n\nÐ’Ð²ÐµÐ´Ð¸Ñ‚Ðµ Ð½Ð¾Ð¼ÐµÑ€ Ð¿ÑƒÐ½ÐºÑ‚Ð° Ð¼ÐµÐ½ÑŽ: \n";
+		}
+		else {
+			SetConsoleTextAttribute(hConsole, menuCol);
+			cout << "IMPORT AND EXPORT";
+			SetConsoleTextAttribute(hConsole, defCol);
+
+			cout << "\n\n1. \tImport test from file";
+			cout << "\n2. \tExport test to file";
+			cout << "\n3. \tBack";
+			cout << "\n\nEnter the menu option number: \n";
+		}
+		cin >> selectedOption;
+
+		if (selectedOption > 3 || selectedOption < 1 || cin.fail()) {
+			msgInputError(false);
+			continue;
+		}
+
+		//Menu logic
+		switch (selectedOption) {
 		case 1:
 			importData();
-
 			system("cls");
-			menuHistory();
 			break;
 		case 2:
 			exportData();
-
 			system("cls");
-			menuHistory();
 			break;
 		case 3:
-			menuHistory();
-			break;
+			return;
+		}
 	}
 }
 
@@ -114,8 +109,7 @@ void compareTests(int optionOneType, int optionTwoType, string optionOneValue, s
 		ifstream file(optionOneValue);
 		if (!file.is_open()) {
 			msgFileOpenError();
-			mainMenu();
-
+			return;
 		}
 		file >> jComparisonOne;
 
@@ -131,8 +125,7 @@ void compareTests(int optionOneType, int optionTwoType, string optionOneValue, s
 		ifstream file(optionTwoValue);
 		if (!file.is_open()) {
 			msgFileOpenError();
-			mainMenu();
-
+			return;
 		}
 		file >> jComparisonTwo;
 

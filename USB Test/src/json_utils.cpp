@@ -163,7 +163,6 @@ bool exportData() {
 		(isLangRu) ? cout << "Ошибка! Не удалось открыть файл." : cout << "Error! Unable to open file.";
 		msgFileOpenError();
 
-		menuHistory();
 		return false; 
 	}
 }
@@ -191,7 +190,6 @@ bool importData() {
 	if (!file.is_open()) {
 		msgFileOpenError();
 
-		menuHistory();
 		return false;
 	}
 	file >> jTestImport;
@@ -260,8 +258,6 @@ bool compareData(json jComparisonOne, json jComparisonTwo) {
 	msgDisplayTestComparison(jComparisonOne, jComparisonTwo);
 	system("pause");
 
-
-	mainMenu();
 	return true;
 }
 

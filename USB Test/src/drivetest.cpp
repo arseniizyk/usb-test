@@ -186,8 +186,6 @@ bool driveTestWritePart(int selectedDrive, std::vector<char>& drives, int select
         collectFeedback(fbDialogAnswer);
 
         formatDisk(selectedDrive);		//Format the disk before exiting the program
-
-        mainMenu();
     }
 
     return true;
@@ -331,8 +329,6 @@ bool driveTestReadPart(int selectedDrive, std::vector<char>& drives, unsigned lo
     collectFeedback(fbDialogAnswer);
 
     formatDisk(selectedDrive);		//Format the disk before exiting the program
-
-    mainMenu();
 
     return true;
 }
