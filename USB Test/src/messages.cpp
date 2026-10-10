@@ -288,7 +288,7 @@ void msgFakeCapacity(unsigned long long actualCapacity) {
 		SetConsoleTextAttribute(hConsole, errCol);
 		cout << "\n\nПохоже реальный размер вашего накопителя меньше, чем заявляет производитель!";		//Message
 		SetConsoleTextAttribute(hConsole, defCol);
-		cout << "\n\nЭто определяется большим количеством ошибок записи (> 1000) под ряд.";
+		cout << "\n\nЭто определяется серией непрерывных ошибок записи подряд.";
 		cout << "\nЕсли с подключением все в порядке, то реальный размер вашего накопителя - ";
 		SetConsoleTextAttribute(hConsole, selCol);
 		cout << actualCapacity << " MB.\n\n";
@@ -298,7 +298,7 @@ void msgFakeCapacity(unsigned long long actualCapacity) {
 		SetConsoleTextAttribute(hConsole, errCol);
 		cout << "\n\nIt looks like the actual capacity of your drive is less than the manufacturer claims!";		//Message
 		SetConsoleTextAttribute(hConsole, defCol);
-		cout << "\nThis is indicated by a large number of consecutive write errors (>1000).";
+		cout << "\nThis is indicated by a continuous series of consecutive write errors.";
 		cout << "\nIf the connection is stable, the actual capacity of your drive is - ";
 		SetConsoleTextAttribute(hConsole, selCol);
 		cout << actualCapacity << " MB.\n\n";

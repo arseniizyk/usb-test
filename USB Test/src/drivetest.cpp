@@ -1,29 +1,136 @@
 #include "include/drivetest.hpp"
 #include <iostream>
-#include <fstream>
 #include <vector>
 #include <cstring>
 #include <chrono>
+#include <cmath>
 #include <windows.h>
 
 using namespace std;
 
-size_t sectorsCount;
-string testFilePath;
 CONSOLE_SCREEN_BUFFER_INFO csbi;
 
 extern HANDLE hConsole;
 extern bool isLangRu;
 extern int defCol, errCol, selCol;
-extern DISK_GEOMETRY dg;
 
-const int OK_DISPLAY_INTERVAL = 5000;   //Display every (5000) OK sector on drive map
+// Optimal block size and chunk size for high throughput, direct I/O and FAT32 compliance
+const size_t BLOCK_SIZE = 1024 * 1024;                               // 1 MB block size
+const unsigned long long CHUNK_SIZE = 1024ULL * 1024ULL * 1024ULL;   // 1 GB per chunk (< 4 GB FAT32 limit)
+const int OK_DISPLAY_INTERVAL = 4;                                   // Display every 4-th OK block (4 MB)
 
-//Write and Read threshold, determinates sector health
-const int OK_THRESHOLD = 75;    
+// Write and Read latency thresholds (ms) per 1 MB block
+const int OK_THRESHOLD = 75;
 const int VERY_SLOW_THRESHOLD = 250;
 const int CRIT_THRESHOLD = 2000;
-const int FAKE_CAPACITY_BAD_COUNT = 1000;
+const int FAKE_CAPACITY_BAD_COUNT = 30; // 30 consecutive failed blocks indicates fake capacity
+
+/*
+* @brief RAII wrapper for sector-aligned buffer allocated via VirtualAlloc
+*/
+struct AlignedBuffer {
+    char* data = nullptr;
+    AlignedBuffer(size_t size) {
+        data = static_cast<char*>(VirtualAlloc(NULL, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
+    }
+    ~AlignedBuffer() {
+        if (data) {
+            VirtualFree(data, 0, MEM_RELEASE);
+        }
+    }
+    char* get() { return data; }
+    bool isValid() const { return data != nullptr; }
+};
+
+/*
+* @brief Fills memory block with deterministic verifiable pattern
+*/
+inline void fillBlockPattern(char* buffer, size_t size, size_t blockIndex) {
+    uint64_t* p = reinterpret_cast<uint64_t*>(buffer);
+    size_t words = size / sizeof(uint64_t);
+    uint64_t base = static_cast<uint64_t>(blockIndex) << 32;
+    for (size_t i = 0; i < words; ++i) {
+        p[i] = base ^ static_cast<uint64_t>(i) ^ 0x5AA55AA5ULL;
+    }
+}
+
+/*
+* @brief Verifies memory block against deterministic pattern
+*/
+inline bool verifyBlockPattern(const char* buffer, size_t size, size_t blockIndex) {
+    const uint64_t* p = reinterpret_cast<const uint64_t*>(buffer);
+    size_t words = size / sizeof(uint64_t);
+    uint64_t base = static_cast<uint64_t>(blockIndex) << 32;
+    for (size_t i = 0; i < words; ++i) {
+        if (p[i] != (base ^ static_cast<uint64_t>(i) ^ 0x5AA55AA5ULL)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/*
+* @brief Generates path to chunk file (e.g. X:\usb-test.001)
+*/
+wstring getChunkFilePath(char driveLetter, size_t chunkIndex) {
+    wchar_t filename[64];
+    swprintf_s(filename, L"%c:\\usb-test.%03zu", static_cast<wchar_t>(towupper(driveLetter)), chunkIndex + 1);
+    return wstring(filename);
+}
+
+/*
+* @brief Opens chunk file with direct I/O (FILE_FLAG_NO_BUFFERING | FILE_FLAG_WRITE_THROUGH)
+*/
+HANDLE openChunkForWriting(const wstring& chunkPath) {
+    HANDLE hFile = CreateFileW(
+        chunkPath.c_str(),
+        GENERIC_WRITE,
+        FILE_SHARE_READ,
+        NULL,
+        CREATE_ALWAYS,
+        FILE_FLAG_NO_BUFFERING | FILE_FLAG_WRITE_THROUGH,
+        NULL
+    );
+    if (hFile == INVALID_HANDLE_VALUE) {
+        hFile = CreateFileW(
+            chunkPath.c_str(),
+            GENERIC_WRITE,
+            FILE_SHARE_READ,
+            NULL,
+            CREATE_ALWAYS,
+            FILE_FLAG_WRITE_THROUGH,
+            NULL
+        );
+    }
+    return hFile;
+}
+
+/*
+* @brief Opens chunk file for direct unbuffered reading
+*/
+HANDLE openChunkForReading(const wstring& chunkPath) {
+    HANDLE hFile = CreateFileW(
+        chunkPath.c_str(),
+        GENERIC_READ,
+        FILE_SHARE_READ,
+        NULL,
+        OPEN_EXISTING,
+        FILE_FLAG_NO_BUFFERING,
+        NULL
+    );
+    if (hFile == INVALID_HANDLE_VALUE) {
+        hFile = CreateFileW(
+            chunkPath.c_str(),
+            GENERIC_READ,
+            FILE_SHARE_READ,
+            NULL,
+            OPEN_EXISTING,
+            0,
+            NULL
+        );
+    }
+    return hFile;
+}
 
 /*
 * @brief Safely removes test files from the target drive without destructive formatting
@@ -43,321 +150,318 @@ void cleanupTestFiles(char driveLetter) {
 }
 
 /*
-* @brief Write test part
+* @brief Write test part with block I/O and FAT32 chunk segmentation
 *
 * @param
-* int selectedDrive: Selected drives number in drives[];
-* 
-* std::vector<char> drives: Array with drive letters in it;
-* 
-* int selectedTest: selected test number (1 - write, 2 - write and read)
+* int selectedDrive: Selected drive index in drives[];
+* std::vector<char> drives: Array with drive letters;
+* int selectedTest: Selected test number (1 - write, 2 - write and read)
 *
-* @return Returns logical true if test completed successfully or false if not
+* @return Returns true if test completed successfully or false if not
 */
 bool driveTestWritePart(int selectedDrive, std::vector<char>& drives, int selectedTest) {
-
-    GetConsoleScreenBufferInfo(hConsole, &csbi);        //Calculating console width
+    GetConsoleScreenBufferInfo(hConsole, &csbi);
     int consoleWidth = csbi.srWindow.Right - csbi.srWindow.Left + 1;
-
-    DWORD bytesPerSector = getSectorSize(selectedDrive, drives);        //Getting bytes per sector count
 
     int slowCount = 0, verySlowCount = 0, critCount = 0, badCount = 0;
     unsigned long long okCount = 0;
-    int badSectorsRowCount = 0;     //Counts bad sectors in a row to detect fake drive capacity
+    int badSectorsRowCount = 0;
+    size_t successfulBlocks = 0;
 
-    dg.BytesPerSector = getSectorSize(selectedDrive, drives);       //Getting one sector size in bytes
+    ULARGE_INTEGER availableBytes = getDrivesInfo(drives, selectedDrive, false);
+    unsigned long long availableMegabytes = availableBytes.QuadPart / (1024ULL * 1024ULL);
 
-    string driveLetter(1, drives[selectedDrive]);  //Getting drive letter
-    testFilePath = driveLetter + ":\\usb-test";     //Forming path to test file
-
-    ULARGE_INTEGER availableBytes = getDrivesInfo(drives, selectedDrive, false);        //Gets how many bytes are available to user on the selected drive
-    unsigned long long availableMegabytes = (availableBytes.QuadPart / (1024ULL * 1024ULL));        //Gets how many Megabytes are available to user on the selected drive
-
-    sectorsCount = static_cast<size_t>(availableBytes.QuadPart / dg.BytesPerSector);        //Counting sectors by dividing capacity (bytes) by one sector size
-
-    msgBeforeTest();        //Displays sector health types and other information before testing
-
-    system("pause");
-    system("cls");
-
-    msgBeforeTest();    //Displays sector status types and other information before testing on a blank screen
-
-
-    // Clean up any stale test files before starting write test
-    cleanupTestFiles(drives[selectedDrive]);
-
-    //Starting write test
-    vector<char> buffer(dg.BytesPerSector);     //Initializing buffer with size of one sector
-
-    ofstream file(testFilePath, ios::binary);       //Opening file
-    if (!file) {
+    size_t totalBlocks = static_cast<size_t>(availableBytes.QuadPart / BLOCK_SIZE);
+    if (totalBlocks == 0) {
         SetConsoleTextAttribute(hConsole, errCol);
-        (isLangRu) ? cerr << "Ошибка при создании файла\n" : cout << "Failed to create file\n";
+        (isLangRu) ? cerr << "Недостаточно свободного места на накопителе для проведения теста.\n"
+                   : cerr << "Not enough free space on drive to run testing.\n";
+        SetConsoleTextAttribute(hConsole, defCol);
+        system("pause");
         return false;
     }
 
-    auto startWrite = chrono::high_resolution_clock::now();     //Write speed
+    size_t blocksPerChunk = static_cast<size_t>(CHUNK_SIZE / BLOCK_SIZE);
+    size_t totalChunks = (totalBlocks + blocksPerChunk - 1) / blocksPerChunk;
 
-    //Writing data on disk, catching errors, counting time of one operation
-    for (size_t sector = 0, i = 0, j = 0, currentChar = 0; sector < sectorsCount; ++sector, ++i, ++j) {
-        memset(buffer.data(), 0, dg.BytesPerSector);        //Filling the buffer with zeros
-        memcpy(buffer.data(), &sector, sizeof(sector));     //Filling the buffer with 'sector' data
+    msgBeforeTest();
+    system("pause");
+    system("cls");
+    msgBeforeTest();
 
-        //Writing data on disk and counting operation time
-        auto start = chrono::high_resolution_clock::now();
-        file.write(buffer.data(), dg.BytesPerSector);
-        file.flush();
-        auto end = chrono::high_resolution_clock::now();
+    cleanupTestFiles(drives[selectedDrive]);
 
-        auto writeDuration = chrono::duration_cast<chrono::milliseconds>(end - start).count(); 
+    AlignedBuffer buffer(BLOCK_SIZE);
+    if (!buffer.isValid()) {
+        SetConsoleTextAttribute(hConsole, errCol);
+        (isLangRu) ? cerr << "Ошибка выделения памяти для буфера ввода-вывода.\n"
+                   : cerr << "Failed to allocate memory for I/O buffer.\n";
+        SetConsoleTextAttribute(hConsole, defCol);
+        system("pause");
+        return false;
+    }
 
+    auto startWrite = chrono::high_resolution_clock::now();
+    size_t globalBlock = 0;
+    int currentChar = 0;
+    int displayCounter = 0;
 
-        //If 1000 sectors in a row are bad, then most likely the actual disk capacity has run out and is significantly less than stated
-        if (badSectorsRowCount > FAKE_CAPACITY_BAD_COUNT) {        
-
-            //Calculating the real capacity by subtracting the currently available bytes from the bytes available at the start of the test.
-            unsigned long long realCapacity = (availableMegabytes - ((getDrivesInfo(drives, selectedDrive, false).QuadPart) / (1024ULL * 1024ULL)));
-
-            file.close();
+    for (size_t chunkIdx = 0; chunkIdx < totalChunks; ++chunkIdx) {
+        wstring chunkPath = getChunkFilePath(drives[selectedDrive], chunkIdx);
+        HANDLE hFile = openChunkForWriting(chunkPath);
+        if (hFile == INVALID_HANDLE_VALUE) {
+            SetConsoleTextAttribute(hConsole, errCol);
+            (isLangRu) ? cerr << "Ошибка при создании файла фрагмента теста.\n"
+                       : cerr << "Failed to create chunk file for testing.\n";
+            SetConsoleTextAttribute(hConsole, defCol);
             cleanupTestFiles(drives[selectedDrive]);
-
-            msgFakeCapacity(realCapacity);      //Displaying information about fake capacity
-
             return false;
         }
 
+        size_t blocksInThisChunk = (chunkIdx == totalChunks - 1)
+            ? (totalBlocks - chunkIdx * blocksPerChunk)
+            : blocksPerChunk;
 
-        if (!file) {        //Bad sector if writing fails
-            SetConsoleTextAttribute(hConsole, (15 << 4) | 0);
-            cout << "#";
-            badCount++;
-            currentChar++;
-            badSectorsRowCount++;       //Count bad sectors in row
-        }
+        for (size_t b = 0; b < blocksInThisChunk; ++b, ++globalBlock) {
+            fillBlockPattern(buffer.get(), BLOCK_SIZE, globalBlock);
 
-        if (writeDuration > CRIT_THRESHOLD) {      //Critically slow sector if write duration is more than 2 seconds
-            SetConsoleTextAttribute(hConsole, (4 << 4) | 4);
-            cout << "#";
-            critCount++;
-            currentChar++;
-            badSectorsRowCount = 0;
+            DWORD bytesWritten = 0;
+            auto start = chrono::high_resolution_clock::now();
+            BOOL success = WriteFile(hFile, buffer.get(), static_cast<DWORD>(BLOCK_SIZE), &bytesWritten, NULL);
+            auto end = chrono::high_resolution_clock::now();
 
-            continue;
-        }
+            auto writeDuration = chrono::duration_cast<chrono::milliseconds>(end - start).count();
 
-        if (writeDuration > VERY_SLOW_THRESHOLD) {        //Very slow sector if write duration is more than 250 ms
-            SetConsoleTextAttribute(hConsole, (6 << 4) | 6);
-            cout << "#";
-            verySlowCount++;
-            currentChar++;
-            badSectorsRowCount = 0;
-
-        } 
-        
-        if (writeDuration > OK_THRESHOLD && writeDuration < VERY_SLOW_THRESHOLD) {      //Slow sector if write duration is more than 75 ms
-            SetConsoleTextAttribute(hConsole, (8 << 4) | 8);
-            cout << "#";
-            slowCount++;
-            currentChar++;
-            badSectorsRowCount = 0;
-
-            continue;
-        } else {
-
-            okCount++;
-            if (i >= OK_DISPLAY_INTERVAL) {        //Displays every 5000-th healthy sector
-                SetConsoleTextAttribute(hConsole, (15 << 4) | 15);       //Sector is healthy if it isn't slow or bad
+            if (!success || bytesWritten != static_cast<DWORD>(BLOCK_SIZE)) {
+                SetConsoleTextAttribute(hConsole, (15 << 4) | 0);
                 cout << "#";
-                badSectorsRowCount = 0;
                 currentChar++;
-                i = 0;
+                badCount++;
+                badSectorsRowCount++;
+
+                if (badSectorsRowCount > FAKE_CAPACITY_BAD_COUNT) {
+                    CloseHandle(hFile);
+                    cleanupTestFiles(drives[selectedDrive]);
+                    unsigned long long realCapacity = (successfulBlocks * BLOCK_SIZE) / (1024ULL * 1024ULL);
+                    msgFakeCapacity(realCapacity);
+                    return false;
+                }
+            } else {
+                successfulBlocks++;
+                badSectorsRowCount = 0;
+
+                if (writeDuration > CRIT_THRESHOLD) {
+                    SetConsoleTextAttribute(hConsole, (4 << 4) | 4);
+                    cout << "#";
+                    critCount++;
+                    currentChar++;
+                } else if (writeDuration > VERY_SLOW_THRESHOLD) {
+                    SetConsoleTextAttribute(hConsole, (6 << 4) | 6);
+                    cout << "#";
+                    verySlowCount++;
+                    currentChar++;
+                } else if (writeDuration > OK_THRESHOLD) {
+                    SetConsoleTextAttribute(hConsole, (8 << 4) | 8);
+                    cout << "#";
+                    slowCount++;
+                    currentChar++;
+                } else {
+                    okCount++;
+                    displayCounter++;
+                    if (displayCounter >= OK_DISPLAY_INTERVAL) {
+                        SetConsoleTextAttribute(hConsole, (15 << 4) | 15);
+                        cout << "#";
+                        currentChar++;
+                        displayCounter = 0;
+                    }
+                }
             }
-            
+
+            if (currentChar >= consoleWidth) {
+                SetConsoleTextAttribute(hConsole, defCol);
+                cout << "\n";
+                currentChar = 0;
+            }
         }
 
-        if (currentChar >= consoleWidth) {      //Start a new line if the number of characters equals the console width
-            SetConsoleTextAttribute(hConsole, defCol);
-            cout << "\n";
-            currentChar = 0;
-        }
-
+        CloseHandle(hFile);
     }
 
-    //Write speed
     auto endWrite = chrono::high_resolution_clock::now();
-    auto writeTime = (chrono::duration_cast<chrono::milliseconds>(endWrite - startWrite).count()) / 1000.0;     //Write time in seconds
-    double writeSpeed = availableMegabytes / writeTime;
-    writeSpeed = std::round(writeSpeed * 10.0) / 10.0;
+    auto writeTime = (chrono::duration_cast<chrono::milliseconds>(endWrite - startWrite).count()) / 1000.0;
+    if (writeTime < 0.001) { writeTime = 0.001; }
+    double totalMegabytesTested = static_cast<double>(successfulBlocks * BLOCK_SIZE) / (1024.0 * 1024.0);
+    double writeSpeed = std::round((totalMegabytesTested / writeTime) * 10.0) / 10.0;
 
-    SetConsoleTextAttribute(hConsole, (0 << 4) | 10);        //End of the write test
+    SetConsoleTextAttribute(hConsole, (0 << 4) | 10);
     (isLangRu) ? cout << "\nТест записи завершен.\n\n" : cout << "\nWrite test finished.\n\n";
+    SetConsoleTextAttribute(hConsole, defCol);
 
-
-    //If selected test is 2 (write, read, and comparison test), then it will be executed
     if (selectedTest == 2) {
-        file.close();
         driveTestReadPart(selectedDrive, drives, okCount, slowCount, verySlowCount, critCount, badCount, writeSpeed, availableMegabytes);
     } else {
-        file.close();
-        int fbDialogAnswer = displayFeedbackDialog();    //Displays feedback request dialog
-        msgWriteTestResults(okCount, slowCount, verySlowCount, critCount, badCount, writeSpeed);     //Or else displaying write test results
+        int fbDialogAnswer = displayFeedbackDialog();
+        msgWriteTestResults(okCount, slowCount, verySlowCount, critCount, badCount, writeSpeed);
 
         SetConsoleTextAttribute(hConsole, errCol);
-        (isLangRu) ? cout << "\nДля сохранения результатов в историю проведите Write&Read тест \n" : cout << "Run a Write&Read test to save results to history. \n";
+        (isLangRu) ? cout << "\nДля сохранения результатов в историю проведите Write&Read тест \n"
+                   : cout << "Run a Write&Read test to save results to history. \n";
         SetConsoleTextAttribute(hConsole, defCol);
 
-        msgFormatBeforeExiting();		//Display a message indicating that the test files will be cleaned up
+        msgFormatBeforeExiting();
         system("pause");
 
         collectFeedback(fbDialogAnswer);
 
-        cleanupTestFiles(drives[selectedDrive]);		//Clean up temporary test files without destructive formatting
+        cleanupTestFiles(drives[selectedDrive]);
     }
 
     return true;
 }
 
-
 /*
-* @brief Read test part
-*
-* @param
-* int selectedDrive: Selected drives number in drives[];
-* 
-* std::vector<char> drives: Array with drive letters in it;
-* 
-* int slowCountWrite, verySlowCountWrite, critCountWrite, badCountWrite: test results from write (previous) test
-* 
-* unsigned long long okCountWrite: good sectors count from write (previous) test
-* 
-* double writeSpeed: write speed from previous test to display results correctly
-* 
-* unsigned long long availableMegabytes: available drive capacity to calculate write and read speed
-*
-* @return Returns logical true if test completed successfully or false if not
+* @brief Read test part with unbuffered direct block I/O
 */
-bool driveTestReadPart(int selectedDrive, std::vector<char>& drives, unsigned long long okCountWrite, int slowCountWrite, int verySlowCountWrite, int critCountWrite, int badCountWrite, double writeSpeed, unsigned long long availableMegabytes) {		//Read + comparison test part, returns logical true or false,   BOOL
-
-    GetConsoleScreenBufferInfo(hConsole, &csbi);        //Calculating console width
+bool driveTestReadPart(int selectedDrive, std::vector<char>& drives, unsigned long long okCountWrite, int slowCountWrite, int verySlowCountWrite, int critCountWrite, int badCountWrite, double writeSpeed, unsigned long long availableMegabytes) {
+    GetConsoleScreenBufferInfo(hConsole, &csbi);
     int consoleWidth = csbi.srWindow.Right - csbi.srWindow.Left + 1;
 
-    DWORD bytesPerSector = getSectorSize(selectedDrive, drives);        //Getting bytes per sector count
+    int critCount = 0, badCount = 0, slowCount = 0, verySlowCount = 0;
+    unsigned long long okCount = 0;
+    size_t successfulBlocksRead = 0;
 
-    int critCount = 0, badCount = 0;
-
-    dg.BytesPerSector = getSectorSize(selectedDrive, drives);       //Getting one sector size in bytes
-
-    vector<char> buffer(dg.BytesPerSector);     //Initializing buffer with size of one sector
-
-
-    ifstream file(testFilePath, ios::binary);       //Opening test file
-    if (!file) {
-        SetConsoleTextAttribute(hConsole, errCol);
-        (isLangRu) ? cerr << "Ошибка при открытии файла для проверки\n" : cerr << "Unable to open file for testing\n";
+    ULARGE_INTEGER availableBytes = getDrivesInfo(drives, selectedDrive, false);
+    size_t totalBlocks = static_cast<size_t>(availableBytes.QuadPart / BLOCK_SIZE);
+    if (totalBlocks == 0) {
         cleanupTestFiles(drives[selectedDrive]);
         return false;
     }
 
-    auto startRead = chrono::high_resolution_clock::now();     //Read speed
+    size_t blocksPerChunk = static_cast<size_t>(CHUNK_SIZE / BLOCK_SIZE);
+    size_t totalChunks = (totalBlocks + blocksPerChunk - 1) / blocksPerChunk;
 
-    //Reading information from test file, comparing it, and counting time
-    for (size_t sector = 0, i = 0, currentChar = 0; sector < sectorsCount; ++sector, ++i) {
-        auto start = chrono::high_resolution_clock::now();
-        file.read(buffer.data(), dg.BytesPerSector);    //Reading 'dg.BytesPerSector' byte and putting it in 'buffer'
-        auto end = chrono::high_resolution_clock::now();
+    AlignedBuffer buffer(BLOCK_SIZE);
+    if (!buffer.isValid()) {
+        SetConsoleTextAttribute(hConsole, errCol);
+        (isLangRu) ? cerr << "Ошибка выделения памяти для буфера чтения.\n"
+                   : cerr << "Failed to allocate memory for read buffer.\n";
+        SetConsoleTextAttribute(hConsole, defCol);
+        cleanupTestFiles(drives[selectedDrive]);
+        return false;
+    }
 
-        auto readDuration = chrono::duration_cast<chrono::milliseconds>(end - start).count();
+    auto startRead = chrono::high_resolution_clock::now();
+    size_t globalBlock = 0;
+    int currentChar = 0;
+    int displayCounter = 0;
 
-        size_t stored_number;
-        memcpy(&stored_number, buffer.data(), sizeof(stored_number));       //Putting data from 'buffer' in 'stored_number'
-
-        if (!file || stored_number != sector) {        //Bad sector if reading fails or data is invalid (comparing data)
-            SetConsoleTextAttribute(hConsole, (15 << 4) | 0);
-            cout << "#";
-            currentChar++;
-            badCount++;
+    for (size_t chunkIdx = 0; chunkIdx < totalChunks; ++chunkIdx) {
+        wstring chunkPath = getChunkFilePath(drives[selectedDrive], chunkIdx);
+        HANDLE hFile = openChunkForReading(chunkPath);
+        if (hFile == INVALID_HANDLE_VALUE) {
+            SetConsoleTextAttribute(hConsole, errCol);
+            (isLangRu) ? cerr << "Ошибка при открытии фрагмента файла для проверки.\n"
+                       : cerr << "Unable to open chunk file for testing.\n";
+            SetConsoleTextAttribute(hConsole, defCol);
+            cleanupTestFiles(drives[selectedDrive]);
+            return false;
         }
 
-        if (readDuration > CRIT_THRESHOLD) {     //Critically slow sector if read duration is more than 2 s
-            SetConsoleTextAttribute(hConsole, (4 << 4) | 4);
-            cout << "#";
-            critCount++;
-            currentChar++;
+        size_t blocksInThisChunk = (chunkIdx == totalChunks - 1)
+            ? (totalBlocks - chunkIdx * blocksPerChunk)
+            : blocksPerChunk;
 
-            continue;
-        }
+        for (size_t b = 0; b < blocksInThisChunk; ++b, ++globalBlock) {
+            DWORD bytesRead = 0;
+            auto start = chrono::high_resolution_clock::now();
+            BOOL success = ReadFile(hFile, buffer.get(), static_cast<DWORD>(BLOCK_SIZE), &bytesRead, NULL);
+            auto end = chrono::high_resolution_clock::now();
 
-        if (readDuration > OK_THRESHOLD && readDuration < VERY_SLOW_THRESHOLD) {       //Slow sector if read duration is more than 75 ms
-            SetConsoleTextAttribute(hConsole, (8 << 4) | 8);
-            cout << "#";
-            currentChar++;
+            auto readDuration = chrono::duration_cast<chrono::milliseconds>(end - start).count();
 
-            continue;
-        }
+            bool valid = success && (bytesRead == static_cast<DWORD>(BLOCK_SIZE)) && verifyBlockPattern(buffer.get(), BLOCK_SIZE, globalBlock);
 
-        if (readDuration > VERY_SLOW_THRESHOLD) {       //Very slow sector if read duration is more than 250 ms
-            SetConsoleTextAttribute(hConsole, (6 << 4) | 6);
-            cout << "#";
-            currentChar++;
-
-            continue;
-
-        } else {
-
-            if (i > OK_DISPLAY_INTERVAL) {     //Displaying every 5000-th healthy sector
-                SetConsoleTextAttribute(hConsole, (15 << 4) | 15);        //If sector isn't bad or slow, then it's healthy
+            if (!valid) {
+                SetConsoleTextAttribute(hConsole, (15 << 4) | 0);
                 cout << "#";
                 currentChar++;
+                badCount++;
+            } else {
+                successfulBlocksRead++;
 
-                i = 0;
+                if (readDuration > CRIT_THRESHOLD) {
+                    SetConsoleTextAttribute(hConsole, (4 << 4) | 4);
+                    cout << "#";
+                    critCount++;
+                    currentChar++;
+                } else if (readDuration > VERY_SLOW_THRESHOLD) {
+                    SetConsoleTextAttribute(hConsole, (6 << 4) | 6);
+                    cout << "#";
+                    verySlowCount++;
+                    currentChar++;
+                } else if (readDuration > OK_THRESHOLD) {
+                    SetConsoleTextAttribute(hConsole, (8 << 4) | 8);
+                    cout << "#";
+                    slowCount++;
+                    currentChar++;
+                } else {
+                    okCount++;
+                    displayCounter++;
+                    if (displayCounter >= OK_DISPLAY_INTERVAL) {
+                        SetConsoleTextAttribute(hConsole, (15 << 4) | 15);
+                        cout << "#";
+                        currentChar++;
+                        displayCounter = 0;
+                    }
+                }
+            }
+
+            if (currentChar >= consoleWidth) {
+                SetConsoleTextAttribute(hConsole, defCol);
+                cout << "\n";
+                currentChar = 0;
             }
         }
 
-        if (currentChar >= consoleWidth) {      //Start a new line if the number of characters equals the console width
-            SetConsoleTextAttribute(hConsole, defCol);
-            cout << "\n";
-            currentChar = 0;
-        }
+        CloseHandle(hFile);
     }
 
-    //Read speed
     auto endRead = chrono::high_resolution_clock::now();
-    auto readTime = (chrono::duration_cast<chrono::milliseconds>(endRead - startRead).count()) / 1000.0;     //Write time in seconds
-    double readSpeed = availableMegabytes / readTime;
-    readSpeed = std::round(readSpeed * 10.0) / 10.0;
+    auto readTime = (chrono::duration_cast<chrono::milliseconds>(endRead - startRead).count()) / 1000.0;
+    if (readTime < 0.001) { readTime = 0.001; }
+    double totalMegabytesRead = static_cast<double>(successfulBlocksRead * BLOCK_SIZE) / (1024.0 * 1024.0);
+    double readSpeed = std::round((totalMegabytesRead / readTime) * 10.0) / 10.0;
 
-    file.close();
+    SetConsoleTextAttribute(hConsole, 7);
 
-    SetConsoleTextAttribute(hConsole, 7);       //Read test end
-
-    string driveLetter(1, drives[selectedDrive]); //Converting char drive letter to std::string
-
-    pushBackData(driveLetter, getTotalMegabytes(drives, selectedDrive), slowCountWrite, verySlowCountWrite, critCountWrite, critCount, badCountWrite, badCount, writeSpeed, readSpeed); //Save test results in .json file
+    string driveLetter(1, drives[selectedDrive]);
+    pushBackData(driveLetter, getTotalMegabytes(drives, selectedDrive), slowCountWrite, verySlowCountWrite, critCountWrite, critCount, badCountWrite, badCount, writeSpeed, readSpeed);
 
     SetConsoleTextAttribute(hConsole, 10);
     (isLangRu) ? cout << "\nТест чтения завершен.\n\n\n\n" : cout << "\nRead test finished.\n\n\n\n";
     SetConsoleTextAttribute(hConsole, defCol);
 
-    int fbDialogAnswer = displayFeedbackDialog();    //Displays feedback request dialog
+    int fbDialogAnswer = displayFeedbackDialog();
 
-    msgReadTestResults(okCountWrite, slowCountWrite, verySlowCountWrite, critCountWrite, badCountWrite, critCount, badCount, readSpeed, writeSpeed);     //Displaying write and read tests results
+    msgReadTestResults(okCountWrite, slowCountWrite, verySlowCountWrite, critCountWrite, badCountWrite, critCount, badCount, readSpeed, writeSpeed);
 
-    //History file path message
     if (isLangRu) {
-        cout << "\n\nРезультаты теста сохранены в: ";   SetConsoleTextAttribute(hConsole, errCol);  cout << getDataPath() << endl;
-    }
-    else {
-        cout << "\n\nTest results saved to: ";  SetConsoleTextAttribute(hConsole, errCol);  cout << getDataPath() << endl;
+        cout << "\n\nРезультаты теста сохранены в: ";
+        SetConsoleTextAttribute(hConsole, errCol);
+        cout << getDataPath() << endl;
+    } else {
+        cout << "\n\nTest results saved to: ";
+        SetConsoleTextAttribute(hConsole, errCol);
+        cout << getDataPath() << endl;
     }
     SetConsoleTextAttribute(hConsole, defCol);
 
-    msgFormatBeforeExiting();		//Display a message indicating that the test files will be cleaned up
-
+    msgFormatBeforeExiting();
     system("pause");
 
     collectFeedback(fbDialogAnswer);
 
-    cleanupTestFiles(drives[selectedDrive]);		//Clean up temporary test files without destructive formatting
+    cleanupTestFiles(drives[selectedDrive]);
 
     return true;
 }
