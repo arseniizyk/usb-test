@@ -30,12 +30,16 @@ void mainMenu() {
 
 		(isLangRu) ? cout << "1.\t" << "Начать тест \n" : cout << "1.\t" << "Start Test \n";
 		(isLangRu) ? cout << "2.\t" << "История/Сравнение тестов \n" : cout << "2.\t" << "Test History/Comparison \n";
-		(isLangRu) ? cout << "3.\t" << "Подробнее \n\n" : cout << "3.\t" << "About \n\n";
+		(isLangRu) ? cout << "3.\t" << "Подробнее \n" : cout << "3.\t" << "About \n";
+		(isLangRu) ? cout << "4.\t" << "Выход \n\n" : cout << "4.\t" << "Exit \n\n";
 
 		(isLangRu) ? cout << "Введите номер пункта меню: " : cout << "Enter the menu option number: ";
 
 		cin >> option;
 		if (cin.fail()) {
+			if (cin.eof()) {
+				break;
+			}
 			msgInputError(false);
 			continue;
 		}
@@ -58,6 +62,10 @@ void mainMenu() {
 		case 3:		//About
 			checkUpdates();
 			msgAbout();
+			break;
+
+		case 4:		//Exit
+			isRunning = false;
 			break;
 		}
 	}
@@ -137,7 +145,15 @@ void menuHistory() {
 		}
 		cin >> selectedOption;
 
-		if (selectedOption > 5 || selectedOption < 1 || cin.fail()) {
+		if (cin.fail()) {
+			if (cin.eof()) {
+				return;
+			}
+			msgInputError(false);
+			continue;
+		}
+
+		if (selectedOption > 5 || selectedOption < 1) {
 			msgInputError(false);
 			continue;
 		}
@@ -193,7 +209,14 @@ void menuComparison() {
 		(isLangRu) ? cout << "Введите номер пункта меню: " : cout << "Enter the menu option number: ";
 
 		cin >> optionOne;
-		if (cin.fail() || (optionOne != 1 && optionOne != 2)) {
+		if (cin.fail()) {
+			if (cin.eof()) {
+				return;
+			}
+			msgInputError(false);
+			continue;
+		}
+		if (optionOne != 1 && optionOne != 2) {
 			msgInputError(false);
 			continue;
 		}
@@ -239,7 +262,14 @@ void menuComparison() {
 		(isLangRu) ? cout << "Введите номер пункта меню: " : cout << "Enter the menu option number: ";
 
 		cin >> optionTwo;
-		if (cin.fail() || (optionTwo != 1 && optionTwo != 2)) {
+		if (cin.fail()) {
+			if (cin.eof()) {
+				return;
+			}
+			msgInputError(false);
+			continue;
+		}
+		if (optionTwo != 1 && optionTwo != 2) {
 			msgInputError(false);
 			continue;
 		}

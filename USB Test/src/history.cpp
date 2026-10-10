@@ -67,7 +67,15 @@ void menuImportExport() {
 		}
 		cin >> selectedOption;
 
-		if (selectedOption > 3 || selectedOption < 1 || cin.fail()) {
+		if (cin.fail()) {
+			if (cin.eof()) {
+				return;
+			}
+			msgInputError(false);
+			continue;
+		}
+
+		if (selectedOption > 3 || selectedOption < 1) {
 			msgInputError(false);
 			continue;
 		}

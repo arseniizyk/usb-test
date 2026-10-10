@@ -19,19 +19,26 @@ extern bool isLangRu;
 * @return Returns number of selected drive in array drives[], int
 */
 int msgSelectDrive() {		
+	while (true) {
+		int selectedDrive = 0;
 
-	int selectedDrive = 0;
+		(isLangRu) ? cout << "Введите номер съёмного диска, который нужно проверить:" << endl : cout << "Enter the number of the removable drive to check:" << endl; 		//Message
+		cin >> selectedDrive;
+		cout << endl;
 
-	(isLangRu) ? cout << "Введите номер съёмного диска, который нужно проверить:" << endl : cout << "Enter the number of the removable drive to check:" << endl; 		//Message
-	cin >> selectedDrive;
-	cout << endl;
+		if (cin.fail() || selectedDrive < 1 || selectedDrive > static_cast<int>(drives.size())) {	//Select logic
+			if (cin.eof()) {
+				exit(1);
+			}
+			msgInputError(false);
+			system("cls");
+			getDrivesInfo(drives, -1, true);
+			continue;
+		}
+		selectedDrive--;		//Array numeration starts from 0, but disk numeration in table starts from 1. Decrement to cover the difference 
 
-	if (cin.fail() || selectedDrive < 1 || selectedDrive > static_cast<int>(drives.size())) {	//Select logic
-		msgInputError(true);
+		return selectedDrive;
 	}
-	selectedDrive--;		//Array numeration starts from 0, but disk numeration in table starts from 1. Decrement to cover the difference 
-
-	return selectedDrive;
 }
 
 
@@ -74,28 +81,36 @@ void msgFileOpenError() {
 * @return Returns selected test, int
 */
 int msgSelectTestType(int selectedDrive) {
-	
-	int selectedTest;
+	while (true) {
+		int selectedTest = 0;
 
-	if (isLangRu) {		//Russian
-		cout << "Номер\t\tТест\t\t\tПодробнее" << endl;		//Message
-		cout << "1\t\tWrite     \t\tБыстрый тест с записью данных на накопитель для проверки его настоящего объема,\n\t\t\t\t\tскорости секторов и выявления битых секторов. \n\n"
-			<< "2\t\tWrite&Read\t\tБолее долгий тест с записью, чтением и сравнением данных\n\t\t\t\t\tдля точной проверки секторов. Результаты сохраняются в историю тестов\n\n";
-		cout << "Введите номер теста, который хотите провести:\n";
-	}
-	else {		//English
-		cout << "No.\t\tTest\t\t\tAbout" << endl;		//Message
-		cout << "1\t\tWrite     \t\tQuick test that writes data to the drive to check its actual capacity,\n\t\t\t\t\tmeasure sector speed, and find any bad sectors\n\n"
-			<< "2\t\tWrite&Read\t\tExtended test that writes, reads, and compares data to thoroughly\n\t\t\t\t\tcheck all sectors. Results are saved to the Test History\n\n";
-		cout << "Enter the test number you'd like to run:\n";
-	}
+		if (isLangRu) {		//Russian
+			cout << "Номер\t\tТест\t\t\tПодробнее" << endl;		//Message
+			cout << "1\t\tWrite     \t\tБыстрый тест с записью данных на накопитель для проверки его настоящего объема,\n\t\t\t\t\tскорости секторов и выявления битых секторов. \n\n"
+				<< "2\t\tWrite&Read\t\tБолее долгий тест с записью, чтением и сравнением данных\n\t\t\t\t\tдля точной проверки секторов. Результаты сохраняются в историю тестов\n\n";
+			cout << "Введите номер теста, который хотите провести:\n";
+		}
+		else {		//English
+			cout << "No.\t\tTest\t\t\tAbout" << endl;		//Message
+			cout << "1\t\tWrite     \t\tQuick test that writes data to the drive to check its actual capacity,\n\t\t\t\t\tmeasure sector speed, and find any bad sectors\n\n"
+				<< "2\t\tWrite&Read\t\tExtended test that writes, reads, and compares data to thoroughly\n\t\t\t\t\tcheck all sectors. Results are saved to the Test History\n\n";
+			cout << "Enter the test number you'd like to run:\n";
+		}
 
+		cin >> selectedTest;
 
-	cin >> selectedTest;
+		if (cin.fail() || (selectedTest != 1 && selectedTest != 2)) {
+			if (cin.eof()) {
+				return 1;
+			}
+			msgInputError(false);
 
-	if (selectedTest == 1 || selectedTest == 2) {		//Test selection logic
+			system("cls");
+			getDrivesInfo(drives, selectedDrive, true);
+			continue;
+		}
+
 		system("cls");
-		
 		getDrivesInfo(drives, selectedDrive, true);
 
 		if (isLangRu) {		//Russian
@@ -118,15 +133,9 @@ int msgSelectTestType(int selectedDrive) {
 			cout << "2\t\tWrite&Read\t\tExtended test that writes, reads, and compares data to thoroughly\n\t\t\t\t\tcheck all sectors. Results are saved to the Test History\n\n";
 			SetConsoleTextAttribute(hConsole, defCol);
 		}
-	}
-	else { 
-		msgInputError(false);
 
-		system("cls");
-		msgSelectTestType(selectedDrive);
+		return selectedTest;
 	}
-
-	return selectedTest;
 }
 
 
@@ -700,7 +709,7 @@ string msgFeedback() {
 	string suggestion;
 	if (isLangRu) {		//Russian
 		SetConsoleTextAttribute(hConsole, menuCol);
-		cout << "Пожалуйста, расскажите, чего, по вашему мнению, USB Test не хватает больше всего, после чего программа перейдет к безопасному форматированию USB-накопителя перед выходом: \n";
+		cout << "Пожалуйста, расскажите, чего, по вашему мнению, USB Test не хватает больше всего, после чего программа очистит временные файлы перед выходом: \n";
 		SetConsoleTextAttribute(hConsole, defCol);
 
 		getline(cin, suggestion);
@@ -708,7 +717,7 @@ string msgFeedback() {
 	}
 	else {		//English
 		SetConsoleTextAttribute(hConsole, menuCol);
-		cout << "What missing feature would make USB Test better? Please share your thoughts, and then the app will safely format your \nUSB drive: \n";
+		cout << "What missing feature would make USB Test better? Please share your thoughts, and then the app will clean up temporary \ntest files before returning to the menu: \n";
 		SetConsoleTextAttribute(hConsole, defCol);
 
 		getline(cin, suggestion);
