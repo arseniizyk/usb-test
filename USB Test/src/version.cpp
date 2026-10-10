@@ -80,7 +80,8 @@ bool isNewerVersion(const std::string& server, const std::string& client) {
     if (sscanf_s(client.c_str(), "%d.%d.%d", &c1, &c2, &c3) != 3) return false;     //Parse client
 
     if (s1 != c1) return s1 > c1;   //Compare major
-    return s2 > c2;                 //Compare minor
+    if (s2 != c2) return s2 > c2;   //Compare minor
+    return s3 > c3;                 //Compare patch
 }
 
 int checkUpdates() {

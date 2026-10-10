@@ -602,7 +602,7 @@ void msgAbout() {
 	cout << "Official website: usbtest.pro \n";
 	cout << "SourceForge: usb-test.sourceforge.io \n\n";
 
-	cout << "Version: 1.1.4\n\n";
+	cout << "Version: 1.1.5\n\n";
 
 	cout << "Thanks for using USB Test! \n\n";
 
