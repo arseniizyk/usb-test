@@ -124,14 +124,6 @@ int checkUpdates() {
         return 1;
     }
 
-    //Set security flags to ignore invalid or self-signed certificates
-    DWORD flags = SECURITY_FLAG_IGNORE_UNKNOWN_CA |
-        SECURITY_FLAG_IGNORE_CERT_CN_INVALID |
-        SECURITY_FLAG_IGNORE_CERT_DATE_INVALID;
-    if (!WinHttpSetOption(hRequest, WINHTTP_OPTION_SECURITY_FLAGS, &flags, sizeof(flags))) {
-        std::cerr << "Failed to set security flags\n";
-    }
-
     //Send request
     if (!WinHttpSendRequest(hRequest, NULL, 0, NULL, 0, 0, 0)) {
         WinHttpCloseHandle(hRequest); WinHttpCloseHandle(hConnect); WinHttpCloseHandle(hSession);
