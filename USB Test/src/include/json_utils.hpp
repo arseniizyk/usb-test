@@ -19,4 +19,4 @@ bool compareData(json jComparisonOne, json jComparisonTwo);
 bool eraseData();
 std::string getDocumentsPath();
 
-extern const std::string DATA_PATH;
+const std::string& getDataPath();

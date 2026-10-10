@@ -8,7 +8,16 @@ using json = nlohmann::json;	//nlohmann's JSON lib
 
 json jDrives = json::array();	//Creating JSON array
 
-const string DATA_PATH = getDocumentsPath() + "\\" + "UsbTestHistory.json";	//Forming path to Documents folder
+const string& getDataPath() {
+	static const string dataPath = []() {
+		string docs = getDocumentsPath();
+		if (docs.empty()) {
+			return string("UsbTestHistory.json");
+		}
+		return docs + "\\" + "UsbTestHistory.json";
+	}();
+	return dataPath;
+}
 
 extern bool isLangRu;
 
@@ -22,7 +31,7 @@ extern int menuCol, defCol, errCol;
 */
 bool readData() {
 
-	ifstream file(DATA_PATH);	//Open file
+	ifstream file(getDataPath());	//Open file
 	if (file.is_open()) {	//Check for errors
 		if (file.peek() != EOF) {	//Check if the file is empty
 			file >> jDrives;
@@ -82,7 +91,7 @@ bool pushBackData(string driveLetter, unsigned long long totalMegabytes, int slo
 */
 bool pushDrivesArray() {
 
-	ofstream file(DATA_PATH);
+	ofstream file(getDataPath());
 	if (!file.is_open()) {
 		return false;
 	}
@@ -125,7 +134,7 @@ bool exportData() {
 	}
 	cout << "\n\n";
 
-	(isLangRu) ? cout << "Ââåäèòå íîìåð òåñòà, êîòîðûé õîòèòå ýêñïîðòèðîâàòü: " : cout << "Enter the test number to export: ";
+	(isLangRu) ? cout << "Ð’Ð²ÐµÐ´Ð¸Ñ‚Ðµ Ð½Ð¾Ð¼ÐµÑ€ Ñ‚ÐµÑÑ‚Ð°, ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ð¹ Ñ…Ð¾Ñ‚Ð¸Ñ‚Ðµ ÑÐºÑÐ¿Ð¾Ñ€Ñ‚Ð¸Ñ€Ð¾Ð²Ð°Ñ‚ÑŒ: " : cout << "Enter the test number to export: ";
 	cin >> testNumber; 
 
 	if (cin.fail())
@@ -135,7 +144,7 @@ bool exportData() {
 
 	cout << endl;
 
-	(isLangRu) ? cout << "Ââåäèòå ïóòü ê ôàéëó, â êîòîðûé áóäåò ýêñïîðòèðîâàí òåñò (íàïðèìåð logs/test1.json):" : cout << "Enter the export file path (e.g. logs/test1.json): ";
+	(isLangRu) ? cout << "Ð’Ð²ÐµÐ´Ð¸Ñ‚Ðµ Ð¿ÑƒÑ‚ÑŒ Ðº Ñ„Ð°Ð¹Ð»Ñƒ, Ð² ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ð¹ Ð±ÑƒÐ´ÐµÑ‚ ÑÐºÑÐ¿Ð¾Ñ€Ñ‚Ð¸Ñ€Ð¾Ð²Ð°Ð½ Ñ‚ÐµÑÑ‚ (Ð½Ð°Ð¿Ñ€Ð¸Ð¼ÐµÑ€ logs/test1.json):" : cout << "Enter the export file path (e.g. logs/test1.json): ";
 	cin >> exportFilePath;
 	if (cin.fail()) { msgInputError(true); }
 	cout << endl;
@@ -151,7 +160,7 @@ bool exportData() {
 		return true;
 	}
 	else { 
-		(isLangRu) ? cout << "Îøèáêà! Íå óäàëîñü îòêðûòü ôàéë." : cout << "Error! Unable to open file.";
+		(isLangRu) ? cout << "ÐžÑˆÐ¸Ð±ÐºÐ°! ÐÐµ ÑƒÐ´Ð°Ð»Ð¾ÑÑŒ Ð¾Ñ‚ÐºÑ€Ñ‹Ñ‚ÑŒ Ñ„Ð°Ð¹Ð»." : cout << "Error! Unable to open file.";
 		msgFileOpenError();
 
 		menuHistory();
@@ -171,7 +180,7 @@ bool importData() {
 	json jTestImport = json::array();
 	
 	system("cls");
-	(isLangRu) ? cout << "Ââåäèòå ïóòü ê ôàéëó ñ òåñòîì äëÿ èìïîðòà (íàïðèìåð logs/test1.json): " : cout << "Enter import file path (e.g. logs/test1.json): ";
+	(isLangRu) ? cout << "Ð’Ð²ÐµÐ´Ð¸Ñ‚Ðµ Ð¿ÑƒÑ‚ÑŒ Ðº Ñ„Ð°Ð¹Ð»Ñƒ Ñ Ñ‚ÐµÑÑ‚Ð¾Ð¼ Ð´Ð»Ñ Ð¸Ð¼Ð¿Ð¾Ñ€Ñ‚Ð° (Ð½Ð°Ð¿Ñ€Ð¸Ð¼ÐµÑ€ logs/test1.json): " : cout << "Enter import file path (e.g. logs/test1.json): ";
 	cin >> importFilePath;
 	if (cin.fail()) { msgInputError(true); }
 	cout << endl;
@@ -190,8 +199,8 @@ bool importData() {
 	system("cls");
 	msgDisplayTestData(jTestImport, 0, -1);	//Displaying data from file
 
-	(isLangRu) ? cout << "\n\nÄîáàâèòü òåñò â èñòîðèþ?\n" : cout << "\n\nAdd test to history?\n";
-	(isLangRu) ? cout << "1. Äà\t2. Íåò\n" : cout << "1.Yes\t2. No\n";
+	(isLangRu) ? cout << "\n\nÐ”Ð¾Ð±Ð°Ð²Ð¸Ñ‚ÑŒ Ñ‚ÐµÑÑ‚ Ð² Ð¸ÑÑ‚Ð¾Ñ€Ð¸ÑŽ?\n" : cout << "\n\nAdd test to history?\n";
+	(isLangRu) ? cout << "1. Ð”Ð°\t2. ÐÐµÑ‚\n" : cout << "1.Yes\t2. No\n";
 
 	cin >> addToHistory;
 	if (cin.fail()) { msgInputError(true); }
@@ -241,7 +250,7 @@ json jComparisonTwo: JSON array with test data
 bool compareData(json jComparisonOne, json jComparisonTwo) {
 
 	SetConsoleTextAttribute(hConsole, menuCol);
-	isLangRu ? cout << "ÑÐÀÂÍÅÍÈÅ ÒÅÑÒÎÂ \n\n" : cout << "TEST COMPARISON \n\n";
+	isLangRu ? cout << "Ð¡Ð ÐÐ’ÐÐ•ÐÐ˜Ð• Ð¢Ð•Ð¡Ð¢ÐžÐ’ \n\n" : cout << "TEST COMPARISON \n\n";
 	SetConsoleTextAttribute(hConsole, defCol);
 
 	msgDisplayTestData(jComparisonOne, 0, 1);
@@ -264,10 +273,10 @@ bool compareData(json jComparisonOne, json jComparisonTwo) {
 */
 bool eraseData() {
 	
-	ofstream fileOut(DATA_PATH, ios::trunc);
+	ofstream fileOut(getDataPath(), ios::trunc);
 	fileOut.close();
 
-	ifstream fileIn(DATA_PATH);
+	ifstream fileIn(getDataPath());
 	if (fileIn.is_open() && fileIn.peek() == EOF) {
 		fileIn.close();
 	}

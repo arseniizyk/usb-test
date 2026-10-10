@@ -17,8 +17,6 @@ extern bool isLangRu;
 extern int defCol, errCol, selCol;
 extern DISK_GEOMETRY dg;
 
-extern const string DATA_PATH;
-
 const int OK_DISPLAY_INTERVAL = 5000;   //Display every (5000) OK sector on drive map
 
 //Write and Read threshold, determinates sector health
@@ -74,7 +72,7 @@ bool driveTestWritePart(int selectedDrive, std::vector<char>& drives, int select
     ofstream file(testFilePath, ios::binary);       //Opening file
     if (!file) {
         SetConsoleTextAttribute(hConsole, errCol);
-        (isLangRu) ? cerr << "Îøèáêà ïðè ñîçäàíèè ôàéëà\n" : cout << "Failed to create file\n";
+        (isLangRu) ? cerr << "ÐžÑˆÐ¸Ð±ÐºÐ° Ð¿Ñ€Ð¸ ÑÐ¾Ð·Ð´Ð°Ð½Ð¸Ð¸ Ñ„Ð°Ð¹Ð»Ð°\n" : cout << "Failed to create file\n";
         return false;
     }
 
@@ -169,7 +167,7 @@ bool driveTestWritePart(int selectedDrive, std::vector<char>& drives, int select
     writeSpeed = std::round(writeSpeed * 10.0) / 10.0;
 
     SetConsoleTextAttribute(hConsole, (0 << 4) | 10);        //End of the write test
-    (isLangRu) ? cout << "\nÒåñò çàïèñè çàâåðøåí.\n\n" : cout << "\nWrite test finished.\n\n";
+    (isLangRu) ? cout << "\nÐ¢ÐµÑÑ‚ Ð·Ð°Ð¿Ð¸ÑÐ¸ Ð·Ð°Ð²ÐµÑ€ÑˆÐµÐ½.\n\n" : cout << "\nWrite test finished.\n\n";
 
 
     //If selected test is 2 (write, read, and comparison test), then it will be executed
@@ -179,7 +177,7 @@ bool driveTestWritePart(int selectedDrive, std::vector<char>& drives, int select
         msgWriteTestResults(okCount, slowCount, verySlowCount, critCount, badCount, writeSpeed);     //Or else displaying write test results
 
         SetConsoleTextAttribute(hConsole, errCol);
-        (isLangRu) ? cout << "\nÄëÿ ñîõðàíåíèÿ ðåçóëüòàòîâ â èñòîðèþ ïðîâåäèòå Write&Read òåñò \n" : cout << "Run a Write&Read test to save results to history. \n";
+        (isLangRu) ? cout << "\nÐ”Ð»Ñ ÑÐ¾Ñ…Ñ€Ð°Ð½ÐµÐ½Ð¸Ñ Ñ€ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð°Ñ‚Ð¾Ð² Ð² Ð¸ÑÑ‚Ð¾Ñ€Ð¸ÑŽ Ð¿Ñ€Ð¾Ð²ÐµÐ´Ð¸Ñ‚Ðµ Write&Read Ñ‚ÐµÑÑ‚ \n" : cout << "Run a Write&Read test to save results to history. \n";
         SetConsoleTextAttribute(hConsole, defCol);
 
         msgFormatBeforeExiting();		//Display a message indicating that the disk will be formatted before the program closes
@@ -231,7 +229,7 @@ bool driveTestReadPart(int selectedDrive, std::vector<char>& drives, unsigned lo
     ifstream file(testFilePath, ios::binary);       //Opening test file
     if (!file) {
         SetConsoleTextAttribute(hConsole, errCol);
-        (isLangRu) ? cerr << "Îøèáêà ïðè îòêðûòèè ôàéëà äëÿ ïðîâåðêè\n" : cerr << "Unable to open file for testing\n";
+        (isLangRu) ? cerr << "ÐžÑˆÐ¸Ð±ÐºÐ° Ð¿Ñ€Ð¸ Ð¾Ñ‚ÐºÑ€Ñ‹Ñ‚Ð¸Ð¸ Ñ„Ð°Ð¹Ð»Ð° Ð´Ð»Ñ Ð¿Ñ€Ð¾Ð²ÐµÑ€ÐºÐ¸\n" : cerr << "Unable to open file for testing\n";
         return false;
     }
 
@@ -310,7 +308,7 @@ bool driveTestReadPart(int selectedDrive, std::vector<char>& drives, unsigned lo
     pushBackData(driveLetter, getTotalMegabytes(drives, selectedDrive), slowCountWrite, verySlowCountWrite, critCountWrite, critCount, badCountWrite, badCount, writeSpeed, readSpeed); //Save test results in .json file
 
     SetConsoleTextAttribute(hConsole, 10);
-    (isLangRu) ? cout << "\nÒåñò ÷òåíèÿ çàâåðøåí.\n\n\n\n" : cout << "\nRead test finished.\n\n\n\n";
+    (isLangRu) ? cout << "\nÐ¢ÐµÑÑ‚ Ñ‡Ñ‚ÐµÐ½Ð¸Ñ Ð·Ð°Ð²ÐµÑ€ÑˆÐµÐ½.\n\n\n\n" : cout << "\nRead test finished.\n\n\n\n";
     SetConsoleTextAttribute(hConsole, defCol);
 
     int fbDialogAnswer = displayFeedbackDialog();    //Displays feedback request dialog
@@ -319,10 +317,10 @@ bool driveTestReadPart(int selectedDrive, std::vector<char>& drives, unsigned lo
 
     //History file path message
     if (isLangRu) {
-        cout << "\n\nÐåçóëüòàòû òåñòà ñîõðàíåíû â: ";   SetConsoleTextAttribute(hConsole, errCol);  cout << DATA_PATH << endl;
+        cout << "\n\nÐ ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð°Ñ‚Ñ‹ Ñ‚ÐµÑÑ‚Ð° ÑÐ¾Ñ…Ñ€Ð°Ð½ÐµÐ½Ñ‹ Ð²: ";   SetConsoleTextAttribute(hConsole, errCol);  cout << getDataPath() << endl;
     }
     else {
-        cout << "\n\nTest results saved to: ";  SetConsoleTextAttribute(hConsole, errCol);  cout << DATA_PATH << endl;
+        cout << "\n\nTest results saved to: ";  SetConsoleTextAttribute(hConsole, errCol);  cout << getDataPath() << endl;
     }
     SetConsoleTextAttribute(hConsole, defCol);
 

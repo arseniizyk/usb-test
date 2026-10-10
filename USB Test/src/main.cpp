@@ -11,12 +11,14 @@
 
 using namespace std;
 
-std::vector<char> drives = getDrives();		//Contains drive letters in {'C', 'D', 'E', 'F'} format
+std::vector<char> drives;		//Contains drive letters in {'C', 'D', 'E', 'F'} format
 
 int main()
 {
 	getSystemLanguage();		//Get system language. If it's not 1049 (Russian), switch to English.
 	
+	getDataPath();				//Initialize data path dynamically after runtime setup
+
 	mainMenu();
 
 	return 0;

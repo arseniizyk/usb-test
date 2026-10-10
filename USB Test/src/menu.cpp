@@ -26,11 +26,11 @@ void mainMenu() {
 	cout << "USB TEST v1.1.5 by n-romanovich \n\n";
 	SetConsoleTextAttribute(hConsole, defCol);
 
-	(isLangRu) ? cout << "1.\t" << "Íà÷àòü òåñò \n" : cout << "1.\t" << "Start Test \n";
-	(isLangRu) ? cout << "2.\t" << "Èñòîðèÿ/Ñðàâíåíèå òåñòîâ \n" : cout << "2.\t" << "Test History/Comparison \n";
-	(isLangRu) ? cout << "3.\t" << "Ïîäðîáíåå \n\n" : cout << "3.\t" << "About \n\n";
+	(isLangRu) ? cout << "1.\t" << "ÐÐ°Ñ‡Ð°Ñ‚ÑŒ Ñ‚ÐµÑÑ‚ \n" : cout << "1.\t" << "Start Test \n";
+	(isLangRu) ? cout << "2.\t" << "Ð˜ÑÑ‚Ð¾Ñ€Ð¸Ñ/Ð¡Ñ€Ð°Ð²Ð½ÐµÐ½Ð¸Ðµ Ñ‚ÐµÑÑ‚Ð¾Ð² \n" : cout << "2.\t" << "Test History/Comparison \n";
+	(isLangRu) ? cout << "3.\t" << "ÐŸÐ¾Ð´Ñ€Ð¾Ð±Ð½ÐµÐµ \n\n" : cout << "3.\t" << "About \n\n";
 
-	(isLangRu) ? cout << "Ââåäèòå íîìåð ïóíêòà ìåíþ: " : cout << "Enter the menu option number: ";
+	(isLangRu) ? cout << "Ð’Ð²ÐµÐ´Ð¸Ñ‚Ðµ Ð½Ð¾Ð¼ÐµÑ€ Ð¿ÑƒÐ½ÐºÑ‚Ð° Ð¼ÐµÐ½ÑŽ: " : cout << "Enter the menu option number: ";
 
 	cin >> option;
 	if (cin.fail()) { msgInputError(true); }
@@ -65,6 +65,8 @@ void mainMenu() {
 void menuTest() {
 	system("cls");
 
+	drives = getDrives();
+
 	int selectedDrive;
 	int selectedTest;		//Selected test: 1 - Write only, 2 - Write, read, and compare	
 
@@ -98,15 +100,15 @@ void menuHistory() {
 
 	if (isLangRu) {		//Russian
 		SetConsoleTextAttribute(hConsole, menuCol);
-		cout << "ÈÑÒÎÐÈß ÒÅÑÒÎÂ";
+		cout << "Ð˜Ð¡Ð¢ÐžÐ Ð˜Ð¯ Ð¢Ð•Ð¡Ð¢ÐžÐ’";
 		SetConsoleTextAttribute(hConsole, defCol);
 
-		cout << "\n\n1. \tÏðîñìîòðåòü èñòîðèþ";
-		cout << "\n2. \tÑðàâíåíèå òåñòîâ";
-		cout << "\n3. \tÈìïîðò/ýêñïîðò";
-		cout << "\n4. \tÑòåðåòü èñòîðèþ";
-		cout << "\n5. \tÍàçàä";
-		cout << "\n\nÂâåäèòå íîìåð ïóíêòà ìåíþ: \n";
+		cout << "\n\n1. \tÐŸÑ€Ð¾ÑÐ¼Ð¾Ñ‚Ñ€ÐµÑ‚ÑŒ Ð¸ÑÑ‚Ð¾Ñ€Ð¸ÑŽ";
+		cout << "\n2. \tÐ¡Ñ€Ð°Ð²Ð½ÐµÐ½Ð¸Ðµ Ñ‚ÐµÑÑ‚Ð¾Ð²";
+		cout << "\n3. \tÐ˜Ð¼Ð¿Ð¾Ñ€Ñ‚/ÑÐºÑÐ¿Ð¾Ñ€Ñ‚";
+		cout << "\n4. \tÐ¡Ñ‚ÐµÑ€ÐµÑ‚ÑŒ Ð¸ÑÑ‚Ð¾Ñ€Ð¸ÑŽ";
+		cout << "\n5. \tÐÐ°Ð·Ð°Ð´";
+		cout << "\n\nÐ’Ð²ÐµÐ´Ð¸Ñ‚Ðµ Ð½Ð¾Ð¼ÐµÑ€ Ð¿ÑƒÐ½ÐºÑ‚Ð° Ð¼ÐµÐ½ÑŽ: \n";
 	}
 	else {		//English
 		SetConsoleTextAttribute(hConsole, menuCol);
@@ -141,7 +143,7 @@ void menuHistory() {
 	case 4:		//Erase data
 		if (eraseData()) {
 			SetConsoleTextAttribute(hConsole, errCol);
-			isLangRu ? cout << "\nÈñòîðèÿ ñòåðòà!\n" : cout << "\nHistory erased!\n";
+			isLangRu ? cout << "\nÐ˜ÑÑ‚Ð¾Ñ€Ð¸Ñ ÑÑ‚ÐµÑ€Ñ‚Ð°!\n" : cout << "\nHistory erased!\n";
 			SetConsoleTextAttribute(hConsole, defCol);
 		}
 		else {
@@ -177,13 +179,13 @@ void menuComparison() {
 
 	//TEST ONE
 	SetConsoleTextAttribute(hConsole, menuCol);
-	(isLangRu) ? cout << "ÑÐÀÂÍÅÍÈÅ ÒÅÑÒÎÂ - Âûáåðèòå òåñò 1\n\n" : cout << "TEST COMPARISON - Select Test 1\n\n";
+	(isLangRu) ? cout << "Ð¡Ð ÐÐ’ÐÐ•ÐÐ˜Ð• Ð¢Ð•Ð¡Ð¢ÐžÐ’ - Ð’Ñ‹Ð±ÐµÑ€Ð¸Ñ‚Ðµ Ñ‚ÐµÑÑ‚ 1\n\n" : cout << "TEST COMPARISON - Select Test 1\n\n";
 	SetConsoleTextAttribute(hConsole, defCol);
 
-	(isLangRu) ? cout << "1. Òåñò èç èñòîðèè \n" : cout << "1. Test from History \n";
-	(isLangRu) ? cout << "2. Èìïîðòèðîâàòü èç ôàéëà \n\n" : cout << "2. Import from File \n\n";
+	(isLangRu) ? cout << "1. Ð¢ÐµÑÑ‚ Ð¸Ð· Ð¸ÑÑ‚Ð¾Ñ€Ð¸Ð¸ \n" : cout << "1. Test from History \n";
+	(isLangRu) ? cout << "2. Ð˜Ð¼Ð¿Ð¾Ñ€Ñ‚Ð¸Ñ€Ð¾Ð²Ð°Ñ‚ÑŒ Ð¸Ð· Ñ„Ð°Ð¹Ð»Ð° \n\n" : cout << "2. Import from File \n\n";
 
-	(isLangRu) ? cout << "Ââåäèòå íîìåð ïóíêòà ìåíþ: " : cout << "Enter the menu option number: ";
+	(isLangRu) ? cout << "Ð’Ð²ÐµÐ´Ð¸Ñ‚Ðµ Ð½Ð¾Ð¼ÐµÑ€ Ð¿ÑƒÐ½ÐºÑ‚Ð° Ð¼ÐµÐ½ÑŽ: " : cout << "Enter the menu option number: ";
 
 	//Option one
 	cin >> optionOne;
@@ -206,13 +208,13 @@ void menuComparison() {
 			msgDisplayShortTestData(jDrives, i);
 		}
 
-		(isLangRu) ? cout << "\n\nÂûáåðèòå òåñò: " : cout << "Select the Test: ";
+		(isLangRu) ? cout << "\n\nÐ’Ñ‹Ð±ÐµÑ€Ð¸Ñ‚Ðµ Ñ‚ÐµÑÑ‚: " : cout << "Select the Test: ";
 		cin >> optionOneValue;		//Get test number in history
 		if (cin.fail()) { msgInputError(true); }
 		break;
 
 	case 2:		//Import test from file
-		(isLangRu) ? cout << "Ââåäèòå ïóòü ê ôàéëó ñ òåñòîì äëÿ èìïîðòà (íàïðèìåð logs/Test1.json): " : cout << "Enter import file path (e.g. logs/test1.json): ";
+		(isLangRu) ? cout << "Ð’Ð²ÐµÐ´Ð¸Ñ‚Ðµ Ð¿ÑƒÑ‚ÑŒ Ðº Ñ„Ð°Ð¹Ð»Ñƒ Ñ Ñ‚ÐµÑÑ‚Ð¾Ð¼ Ð´Ð»Ñ Ð¸Ð¼Ð¿Ð¾Ñ€Ñ‚Ð° (Ð½Ð°Ð¿Ñ€Ð¸Ð¼ÐµÑ€ logs/Test1.json): " : cout << "Enter import file path (e.g. logs/test1.json): ";
 		cin >> optionOneValue;		//Get file path
 		if (cin.fail()) { msgInputError(true); }
 		break;
@@ -224,13 +226,13 @@ void menuComparison() {
 
 	//TEST TWO
 	SetConsoleTextAttribute(hConsole, menuCol);
-	(isLangRu) ? cout << "ÑÐÀÂÍÅÍÈÅ ÒÅÑÒÎÂ - Âûáåðèòå òåñò 2\n\n" : cout << "TEST COMPARISON - Select Test 2\n\n";
+	(isLangRu) ? cout << "Ð¡Ð ÐÐ’ÐÐ•ÐÐ˜Ð• Ð¢Ð•Ð¡Ð¢ÐžÐ’ - Ð’Ñ‹Ð±ÐµÑ€Ð¸Ñ‚Ðµ Ñ‚ÐµÑÑ‚ 2\n\n" : cout << "TEST COMPARISON - Select Test 2\n\n";
 	SetConsoleTextAttribute(hConsole, defCol);
 
-	(isLangRu) ? cout << "1. Òåñò èç èñòîðèè \n" : cout << "1. Test from History \n";
-	(isLangRu) ? cout << "2. Èìïîðòèðîâàòü èç ôàéëà \n\n" : cout << "2. Import from File \n\n";
+	(isLangRu) ? cout << "1. Ð¢ÐµÑÑ‚ Ð¸Ð· Ð¸ÑÑ‚Ð¾Ñ€Ð¸Ð¸ \n" : cout << "1. Test from History \n";
+	(isLangRu) ? cout << "2. Ð˜Ð¼Ð¿Ð¾Ñ€Ñ‚Ð¸Ñ€Ð¾Ð²Ð°Ñ‚ÑŒ Ð¸Ð· Ñ„Ð°Ð¹Ð»Ð° \n\n" : cout << "2. Import from File \n\n";
 
-	(isLangRu) ? cout << "Ââåäèòå íîìåð ïóíêòà ìåíþ: " : cout << "Enter the menu option number: ";
+	(isLangRu) ? cout << "Ð’Ð²ÐµÐ´Ð¸Ñ‚Ðµ Ð½Ð¾Ð¼ÐµÑ€ Ð¿ÑƒÐ½ÐºÑ‚Ð° Ð¼ÐµÐ½ÑŽ: " : cout << "Enter the menu option number: ";
 
 	//Option two
 	cin >> optionTwo;
@@ -250,13 +252,13 @@ void menuComparison() {
 			msgDisplayShortTestData(jDrives, i);
 		}
 
-		(isLangRu) ? cout << "\n\nÂûáåðèòå òåñò: " : cout << "Select the Test: ";
+		(isLangRu) ? cout << "\n\nÐ’Ñ‹Ð±ÐµÑ€Ð¸Ñ‚Ðµ Ñ‚ÐµÑÑ‚: " : cout << "Select the Test: ";
 		cin >> optionTwoValue;		//Get test number in history
 		if (cin.fail()) { msgInputError(true); }
 		break;
 
 	case 2:		//Import test from file
-		(isLangRu) ? cout << "Ââåäèòå ïóòü ê ôàéëó ñ òåñòîì äëÿ èìïîðòà (íàïðèìåð logs/test1.json): " : cout << "Enter import file path (e.g. logs/test1.json): ";
+		(isLangRu) ? cout << "Ð’Ð²ÐµÐ´Ð¸Ñ‚Ðµ Ð¿ÑƒÑ‚ÑŒ Ðº Ñ„Ð°Ð¹Ð»Ñƒ Ñ Ñ‚ÐµÑÑ‚Ð¾Ð¼ Ð´Ð»Ñ Ð¸Ð¼Ð¿Ð¾Ñ€Ñ‚Ð° (Ð½Ð°Ð¿Ñ€Ð¸Ð¼ÐµÑ€ logs/test1.json): " : cout << "Enter import file path (e.g. logs/test1.json): ";
 		cin >> optionTwoValue;		//Get file path
 		if (cin.fail()) { msgInputError(true); }
 		break;
